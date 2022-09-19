@@ -108,9 +108,6 @@
 /* electricity_device */
 
 
-/* wiota APP DEMO */
-
-
 /* wiota APP */
 
 #define UC8288_MODULE
