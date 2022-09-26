@@ -9,7 +9,6 @@
  */
 #include <rtthread.h>
 #ifdef RT_USING_AT
-#ifndef WIOTA_APP_DEMO
 #ifdef UC8288_MODULE
 #include <rtdevice.h>
 #include <board.h>
@@ -971,8 +970,10 @@ static at_result_t at_wiotastats_query(void)
 
     uc_wiota_get_all_stats(&local_stats_t);
 
-    at_server_printfln("+WIOTASTATS=0,%d,%d,%d,%d,%d,%d,%d", local_stats_t.rach_fail, local_stats_t.active_fail, local_stats_t.ul_succ,
-                       local_stats_t.dl_fail, local_stats_t.dl_succ, local_stats_t.bc_fail, local_stats_t.bc_succ);
+    at_server_printfln("+WIOTASTATS=0,%d,%d,%d,%d,%d,%d,%d,%d", local_stats_t.uni_send_total, local_stats_t.uni_send_succ,
+                                                                local_stats_t.bc_send_total, local_stats_t.bc_send_succ,
+                                                                local_stats_t.uni_recv_fail, local_stats_t.uni_recv_succ,
+                                                                local_stats_t.bc_recv_fail, local_stats_t.bc_recv_succ);
 
     return AT_RESULT_OK;
 }
@@ -1117,6 +1118,56 @@ static at_result_t at_wiota_bc_round_setup(const char *args)
     return AT_RESULT_OK;
 }
 
+static at_result_t at_wiota_wait_cnt_setup(const char *args)
+{
+    int number = 0;
+
+    args = parse((char *)(++args), "d", &number);
+
+    if (!args || number <= 0)
+    {
+        return AT_RESULT_PARSE_FAILE;
+    }
+
+    uc_wiota_set_wait_cnt((unsigned int)number);
+
+    return AT_RESULT_OK;
+}
+
+static at_result_t at_wiota_bandwidth_setup(const char *args)
+{
+    int number = 0;
+
+    args = parse((char *)(++args), "d", &number);
+
+    if (!args || number < 0)
+    {
+        return AT_RESULT_PARSE_FAILE;
+    }
+
+    uc_wiota_set_bandwidth((unsigned char)number);
+
+    return AT_RESULT_OK;
+}
+
+
+static at_result_t at_wiota_continue_send_setup(const char *args)
+{
+    int flag = 0;
+
+    args = parse((char *)(++args), "d", &flag);
+
+    if (!args || flag < 0)
+    {
+        return AT_RESULT_PARSE_FAILE;
+    }
+
+    uc_wiota_set_continue_send((unsigned char)flag);
+
+    return AT_RESULT_OK;
+}
+
+
 
 AT_CMD_EXPORT("AT+WIOTAVERSION", RT_NULL, RT_NULL, at_wiota_version_query, RT_NULL, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAINIT", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_init_exec);
@@ -1141,9 +1192,10 @@ AT_CMD_EXPORT("AT+WIOTAOSC", "=<mode>", RT_NULL, at_wiotaosc_query, at_wiotaosc_
 AT_CMD_EXPORT("AT+WIOTALIGHT", "=<mode>", RT_NULL, RT_NULL, at_wiotalight_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTASAVESTATIC", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_save_static_exec);
 AT_CMD_EXPORT("AT+WIOTASUBNUM", "=<number>", RT_NULL, RT_NULL, at_wiota_subframe_num_setup, RT_NULL);
-AT_CMD_EXPORT("AT+WIOTABCROUND", "=<number>", RT_NULL, RT_NULL, at_wiota_bc_round_setup, RT_NULL);
-
-#endif
+AT_CMD_EXPORT("AT+WIOTABCROUND", "=<round>", RT_NULL, RT_NULL, at_wiota_bc_round_setup, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTAWAITCNT", "=<cnt>", RT_NULL, RT_NULL, at_wiota_wait_cnt_setup, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTABAND", "=<band>", RT_NULL, RT_NULL, at_wiota_bandwidth_setup, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTACONTINUESEND", "=<flag>", RT_NULL, RT_NULL, at_wiota_continue_send_setup, RT_NULL);
 
 #endif
 #endif

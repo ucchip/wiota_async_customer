@@ -102,15 +102,14 @@ typedef enum {
 
 typedef enum {
     UC_STATS_TYPE_ALL = 0,
-    UC_STATS_RACH_FAIL,
-    UC_STATS_ACTIVE_FAIL,
-    UC_STATS_UL_SUCC,
-    UC_STATS_DL_FAIL,
-    UC_STATS_DL_SUCC,
-    UC_STATS_BC_FAIL,
-    UC_STATS_BC_SUCC,
-    UC_STATS_UL_SM_SUCC,
-    UC_STATS_UL_SM_TOTAL,
+    UC_STATS_UNI_SEND_TOTAL,
+    UC_STATS_UNI_SEND_SUCC,
+    UC_STATS_BC_SEND_TOTAL,
+    UC_STATS_BC_SEND_SUCC,
+    UC_STATS_UNI_RECV_FAIL,
+    UC_STATS_UNI_RECV_SUCC,
+    UC_STATS_BC_RECV_FAIL,
+    UC_STATS_BC_RECV_SUCC,
     UC_STATS_TYPE_MAX,
 }UC_STATS_TYPE;
 
@@ -196,27 +195,14 @@ typedef struct {
 
 
 typedef struct {
-    unsigned int   rach_fail;
-    unsigned int   active_fail;
-    unsigned int   ul_succ;
-    unsigned int   dl_fail;
-    unsigned int   dl_succ;
-    unsigned int   bc_fail;
-    unsigned int   bc_succ;
-    unsigned int   ul_sm_succ;
-    unsigned int   ul_sm_total;
-}uc_stats_info_t,*uc_stats_info_p;
-
-/*
-typedef struct {
-    unsigned int   uni_send_succ;
     unsigned int   uni_send_total;
-    unsigned int   bc_send_total;
+    unsigned int   uni_send_succ;
+    unsigned int   bc_send_total;   // not use, is same as bc_send_succ
+    unsigned int   bc_send_succ;
+    unsigned int   uni_recv_fail;
     unsigned int   uni_recv_succ;
+    unsigned int   bc_recv_fail;
     unsigned int   bc_recv_succ;
-    unsigned int   uni_packet_recv_;
-    unsigned int   ul_sm_succ;
-    unsigned int   ul_sm_total;
 }uc_stats_info_t,*uc_stats_info_p;
 
 typedef struct {
@@ -225,15 +211,6 @@ typedef struct {
     unsigned int   uni_recv_succ_data_len;
     unsigned int   bc_recv_succ_data_len;
 }uc_throughput_info_t,*uc_throughput_info_p;
-
-*/
-
-typedef struct {
-    unsigned int   ul_succ_data_len;
-    unsigned int   dl_succ_data_len;
-    unsigned int   bc_succ_data_len;
-}uc_throughput_info_t,*uc_throughput_info_p;
-
 
 typedef void (*uc_recv)(uc_recv_back_p recv_data);
 typedef void (*uc_send)(uc_send_back_p send_result);
@@ -308,15 +285,11 @@ void uc_wiota_set_wait_cnt(unsigned int wait_cnt);
 
 void uc_wiota_set_bandwidth(unsigned char bandwidth);
 
-u32_t uc_wiota_get_frame_len(void);
+unsigned int uc_wiota_get_frame_len(void);
 
-// below is for inter test !
+void uc_wiota_set_continue_send(u8_t c_send_flag);
 
-void uc_wiota_test_loop(unsigned char mode);
-
-void uc_wiota_test_lpm(unsigned char mode, unsigned char value);
-
-
+// below is about uboot
 void get_uboot_version(unsigned char * version);
 
 void get_uboot_baud_rate(int * baudrate);

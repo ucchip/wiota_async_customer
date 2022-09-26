@@ -13,7 +13,7 @@ MEMORY
 	protocal_stack   : ORIGIN = 0x0000A000, LENGTH = 0x11000
 	instrram    : ORIGIN = 0x0001B000, LENGTH = 0xE000 /* 176K actually rom... */
 	datarom     : ORIGIN = 0x00200000, LENGTH = 0x4FC00 /* 84K data rom*/
-	dataram     : ORIGIN = 0x00308000, LENGTH = 0x7B00  /* 30K byte board.h also need change!!! */
+	dataram     : ORIGIN = 0x00304000, LENGTH = 0xBB00  /* 46.75K byte board.h also need change!!! */
 	traceram    : ORIGIN = 0x0030FB00, LENGTH = 0x400   /* 1 KB */
 	stack       : ORIGIN = 0x0030FF00, LENGTH = 0x100   /* 256 byte */
 	ota_flag    : ORIGIN = 0x00400000, LENGTH = 1K

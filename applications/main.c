@@ -17,16 +17,12 @@
 #include "uc_event.h"
 #endif
 
-#ifndef WIOTA_APP_DEMO
 #ifdef UC8288_MODULE
 #ifdef RT_USING_AT
 #include "at.h"
 #endif
 #else
 #include "test_wiota_api.h"
-#endif
-#else
-#include "app_manager.h"
 #endif
 
 #ifdef _WATCHDOG_APP_
@@ -42,7 +38,7 @@ extern void uc_wiota_static_data_init(void);
 #if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
 extern void at_handle_log_uart(int uart_number);
 #endif
-extern void at_wiota_manager(void);
+// extern void at_wiota_manager(void);
 //void task_callback(struct rt_thread* from, struct rt_thread* to)
 //{
 //    rt_kprintf("name = %s, 0x%x\n", from->name, from);
@@ -67,7 +63,6 @@ int main(void)
         watchdog_app_enable();
 #endif
 
-#ifndef WIOTA_APP_DEMO
 #ifdef UC8288_MODULE
 #ifdef RT_USING_AT
     at_server_init();
@@ -75,9 +70,6 @@ int main(void)
 #endif
 #else
     app_task_init();
-#endif
-#else
-    // app_manager_enter();
 #endif
 
 #if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
@@ -97,14 +89,15 @@ int main(void)
     //     *((unsigned int*)(addr) + i) = 0;
     // }
 
-    // while(1)
-    // {
-    //     unsigned int total;
-    //     unsigned int used;
-    //     unsigned int max_used;
+
+    while(1)
+    {
+        unsigned int total;
+        unsigned int used;
+        unsigned int max_used;
 
 
-    //     rt_thread_delay(10000);
+        rt_thread_delay(10000);
 
     //     // read write 8K
     //     // for (i=0; i<2048; i++) {
@@ -113,10 +106,10 @@ int main(void)
     //     //     *((unsigned int*)(addr) + i) = value;
     //     // }
 
-    //     rt_memory_info(&total,&used,&max_used);
-    //     rt_kprintf("total %d used %d maxused %d\n",total,used,max_used);
+        rt_memory_info(&total,&used,&max_used);
+        rt_kprintf("total %d used %d maxused %d\n",total,used,max_used);
 
-    // }
+    }
 
     //    init_statistical_task_info();
 
