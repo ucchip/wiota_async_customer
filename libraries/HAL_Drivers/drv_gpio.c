@@ -10,19 +10,15 @@
  */
 
 #include <rtthread.h>
+#ifdef RT_USING_PIN
 #include <rthw.h>
 #include "board.h"
 //#include "drv_common.h"
-
-#ifdef RT_USING_PIN
-
 #include <rtdevice.h>
 #include "uc_gpio.h"
 #include "uc_event.h"
 
-
-static struct rt_pin_irq_hdr pin_irq_hdr_tab[] =
-{
+static struct rt_pin_irq_hdr pin_irq_hdr_tab[] = {
     {-1, 0, RT_NULL, RT_NULL},
     {-1, 0, RT_NULL, RT_NULL},
     {-1, 0, RT_NULL, RT_NULL},
@@ -122,8 +118,8 @@ rt_inline rt_int32_t bit2bitno(rt_uint32_t bit)
     return -1;
 }
 
-static rt_err_t uc8088_pin_attach_irq(struct rt_device* device, rt_int32_t pin,
-                                      rt_uint32_t mode, void (*hdr)(void* args), void* args)
+static rt_err_t uc8088_pin_attach_irq(struct rt_device *device, rt_int32_t pin,
+                                      rt_uint32_t mode, void (*hdr)(void *args), void *args)
 {
     rt_base_t level;
     rt_int32_t irqindex = -1;
@@ -157,7 +153,7 @@ static rt_err_t uc8088_pin_attach_irq(struct rt_device* device, rt_int32_t pin,
     return RT_EOK;
 }
 
-static rt_err_t uc8088_pin_dettach_irq(struct rt_device* device, rt_int32_t pin)
+static rt_err_t uc8088_pin_dettach_irq(struct rt_device *device, rt_int32_t pin)
 {
     rt_base_t level;
     rt_int32_t irqindex = -1;
@@ -183,7 +179,7 @@ static rt_err_t uc8088_pin_dettach_irq(struct rt_device* device, rt_int32_t pin)
     return RT_EOK;
 }
 
-static rt_err_t uc8088_pin_irq_enable(struct rt_device* device, rt_base_t pin,
+static rt_err_t uc8088_pin_irq_enable(struct rt_device *device, rt_base_t pin,
                                       rt_uint32_t enabled)
 {
     rt_base_t level;
@@ -207,18 +203,18 @@ static rt_err_t uc8088_pin_irq_enable(struct rt_device* device, rt_base_t pin,
 
         switch (pin_irq_hdr_tab[irqindex].mode)
         {
-            case PIN_IRQ_MODE_RISING:
-                gpio_set_irq_type(UC_GPIO, pin, GPIO_IT_RISE_EDGE);
-                break;
-            case PIN_IRQ_MODE_FALLING:
-                gpio_set_irq_type(UC_GPIO, pin, GPIO_IT_FALL_EDGE);
-                break;
-            case PIN_IRQ_MODE_HIGH_LEVEL:
-                gpio_set_irq_type(UC_GPIO, pin, GPIO_IT_HIGH_LEVEL);
-                break;
-            case PIN_IRQ_MODE_LOW_LEVEL:
-                gpio_set_irq_type(UC_GPIO, pin, GPIO_IT_LOW_LEVEL);
-                break;
+        case PIN_IRQ_MODE_RISING:
+            gpio_set_irq_type(UC_GPIO, pin, GPIO_IT_RISE_EDGE);
+            break;
+        case PIN_IRQ_MODE_FALLING:
+            gpio_set_irq_type(UC_GPIO, pin, GPIO_IT_FALL_EDGE);
+            break;
+        case PIN_IRQ_MODE_HIGH_LEVEL:
+            gpio_set_irq_type(UC_GPIO, pin, GPIO_IT_HIGH_LEVEL);
+            break;
+        case PIN_IRQ_MODE_LOW_LEVEL:
+            gpio_set_irq_type(UC_GPIO, pin, GPIO_IT_LOW_LEVEL);
+            break;
         }
         gpio_set_irq_en(UC_GPIO, pin, 1);
 
@@ -252,13 +248,13 @@ static rt_err_t uc8088_pin_irq_enable(struct rt_device* device, rt_base_t pin,
     return RT_EOK;
 }
 const static struct rt_pin_ops _uc8088_pin_ops =
-{
-    uc8088_pin_mode,
-    uc8088_pin_write,
-    uc8088_pin_read,
-    uc8088_pin_attach_irq,
-    uc8088_pin_dettach_irq,
-    uc8088_pin_irq_enable,
+    {
+        uc8088_pin_mode,
+        uc8088_pin_write,
+        uc8088_pin_read,
+        uc8088_pin_attach_irq,
+        uc8088_pin_dettach_irq,
+        uc8088_pin_irq_enable,
 };
 
 rt_inline void pin_irq_hdr(int irqno)
@@ -288,4 +284,3 @@ int rt_hw_pin_init(void)
 }
 
 #endif /* RT_USING_PIN */
-

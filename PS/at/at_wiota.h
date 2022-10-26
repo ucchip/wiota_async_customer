@@ -1,4 +1,3 @@
-
 #ifndef __AT_WIOTA_H__
 #define __AT_WIOTA_H__
 
@@ -14,5 +13,3 @@ void at_wiota_set_state(int state);
 int at_wiota_get_state(void);
 
 #endif
-
-

@@ -10,14 +10,11 @@
  * 2019-01-03     zylx         modify DMA initialization and spixfer function
  * 2020-01-15     whj4674672   Porting for stm32h7xx
  */
-
-#include "board.h"
-#include<rtthread.h>
-#include<rtdevice.h>
-#include <string.h>
-
+#include <rtthread.h>
 #ifdef RT_USING_SPI
-
+#include "board.h"
+#include <rtdevice.h>
+#include <string.h>
 #include "drv_spi.h"
 //#include "drv_config.h"
 #include "uc_spim.h"
@@ -25,19 +22,19 @@
 #include "uc_timer.h"
 
 //#define DRV_DEBUG
-#define LOG_TAG              "drv.spi"
+#define LOG_TAG "drv.spi"
 #include <drv_log.h>
 
 #ifdef RT_USING_SFUD
 //#include <spi_flash_sfud.h>
 #include "spi_flash.h"
-extern rt_spi_flash_device_t rt_sfud_flash_probe(const char* spi_flash_dev_name, const char* spi_dev_name);
+extern rt_spi_flash_device_t rt_sfud_flash_probe(const char *spi_flash_dev_name, const char *spi_dev_name);
 #endif
 
-#define SPIM_CMD_RD    0
-#define SPIM_CMD_WR    1
-#define SPIM_CMD_QRD   2
-#define SPIM_CMD_QWR   3
+#define SPIM_CMD_RD 0
+#define SPIM_CMD_WR 1
+#define SPIM_CMD_QRD 2
+#define SPIM_CMD_QWR 3
 #define SPIM_CMD_SWRST 4
 
 #define SPIM_CSN0 0
@@ -47,7 +44,7 @@ extern rt_spi_flash_device_t rt_sfud_flash_probe(const char* spi_flash_dev_name,
 
 struct uc8088_hw_spi_cs
 {
-    GPIO_TypeDef* GPIOx;
+    GPIO_TypeDef *GPIOx;
     uint16_t GPIO_Pin;
 };
 
@@ -57,17 +54,17 @@ static struct rt_spi_bus uc8088_spi_bus;
 #define BSP_USING_SOFTWARE_SPIM
 
 #ifdef BSP_USING_SOFTWARE_SPIM
-#define SCK_H   gpio_set_pin_value(UC_GPIO, BSP_SPIM_SCK_PIN, GPIO_VALUE_HIGH)
-#define SCK_L   gpio_set_pin_value(UC_GPIO, BSP_SPIM_SCK_PIN, GPIO_VALUE_LOW)
-#define MOSI_H  gpio_set_pin_value(UC_GPIO, BSP_SPIM_MOSI_PIN, GPIO_VALUE_HIGH)
-#define MOSI_L  gpio_set_pin_value(UC_GPIO, BSP_SPIM_MOSI_PIN, GPIO_VALUE_LOW)
-#define MISO    gpio_get_pin_value(UC_GPIO, BSP_SPIM_MISO_PIN)
+#define SCK_H gpio_set_pin_value(UC_GPIO, BSP_SPIM_SCK_PIN, GPIO_VALUE_HIGH)
+#define SCK_L gpio_set_pin_value(UC_GPIO, BSP_SPIM_SCK_PIN, GPIO_VALUE_LOW)
+#define MOSI_H gpio_set_pin_value(UC_GPIO, BSP_SPIM_MOSI_PIN, GPIO_VALUE_HIGH)
+#define MOSI_L gpio_set_pin_value(UC_GPIO, BSP_SPIM_MOSI_PIN, GPIO_VALUE_LOW)
+#define MISO gpio_get_pin_value(UC_GPIO, BSP_SPIM_MISO_PIN)
 
 static uint8_t software_spi_cpol = 0;
 static uint8_t software_spi_cpha = 0;
 static uint32_t software_spi_hz = 0;
 
-static rt_err_t software_spi_init(struct rt_spi_configuration* cfg)
+static rt_err_t software_spi_init(struct rt_spi_configuration *cfg)
 {
     gpio_set_pin_mux(UC_GPIO_CFG, BSP_SPIM_SCK_PIN, GPIO_FUNC_0);
     gpio_set_pin_pupd(UC_GPIO_CFG, BSP_SPIM_SCK_PIN, GPIO_PUPD_UP);
@@ -110,7 +107,7 @@ static void software_delay(void)
     rt_uint32_t us = 400000 / software_spi_hz;
     rt_uint32_t ticks;
     rt_uint32_t told, tnow, tcnt = 0;
-    rt_uint32_t Compare_Value = ((rt_uint32_t)BSP_CLOCK_SYSTEM_FREQ_HZ)  / (5 * RT_TICK_PER_SECOND);
+    rt_uint32_t Compare_Value = ((rt_uint32_t)BSP_CLOCK_SYSTEM_FREQ_HZ) / (5 * RT_TICK_PER_SECOND);
 
     ticks = us * Compare_Value / (1000000 / RT_TICK_PER_SECOND);
     told = timer_get_count(UC_TIMER0);
@@ -202,18 +199,18 @@ static uint8_t software_spi_rw(uint8_t write_dat)
     return read_dat;
 }
 
-static rt_uint32_t software_spi_spixfer(struct rt_spi_device* device, struct rt_spi_message* message)
+static rt_uint32_t software_spi_spixfer(struct rt_spi_device *device, struct rt_spi_message *message)
 {
     rt_size_t message_length;
-    rt_uint8_t* recv_buf;
-    const rt_uint8_t* send_buf;
+    rt_uint8_t *recv_buf;
+    const rt_uint8_t *send_buf;
 
     RT_ASSERT(device != RT_NULL);
     RT_ASSERT(device->bus != RT_NULL);
     //RT_ASSERT(device->bus->parent.user_data != RT_NULL);
     RT_ASSERT(message != RT_NULL);
 
-    struct uc8088_hw_spi_cs* cs = device->parent.user_data;
+    struct uc8088_hw_spi_cs *cs = device->parent.user_data;
 
     if (message->cs_take)
     {
@@ -272,7 +269,7 @@ static rt_uint32_t software_spi_spixfer(struct rt_spi_device* device, struct rt_
 }
 #else
 
-static rt_err_t uc8088_spi_init(struct rt_spi_configuration* cfg)
+static rt_err_t uc8088_spi_init(struct rt_spi_configuration *cfg)
 {
     RT_ASSERT(cfg != RT_NULL);
     SPIM_CFG_Type SPI_ConfigStruc;
@@ -325,12 +322,12 @@ static rt_err_t uc8088_spi_init(struct rt_spi_configuration* cfg)
     return RT_EOK;
 }
 
-static rt_uint32_t uc8088_spi_spixfer(struct rt_spi_device* device, struct rt_spi_message* message)
+static rt_uint32_t uc8088_spi_spixfer(struct rt_spi_device *device, struct rt_spi_message *message)
 {
     rt_size_t message_length, already_send_length;
     rt_uint16_t send_length;
-    rt_uint8_t* recv_buf;
-    const rt_uint8_t* send_buf;
+    rt_uint8_t *recv_buf;
+    const rt_uint8_t *send_buf;
     int8_t state = 0;
 
     RT_ASSERT(device != RT_NULL);
@@ -338,7 +335,7 @@ static rt_uint32_t uc8088_spi_spixfer(struct rt_spi_device* device, struct rt_sp
     //RT_ASSERT(device->bus->parent.user_data != RT_NULL);
     RT_ASSERT(message != RT_NULL);
 
-    struct uc8088_hw_spi_cs* cs = device->parent.user_data;
+    struct uc8088_hw_spi_cs *cs = device->parent.user_data;
 
     if (message->cs_take)
     {
@@ -370,8 +367,8 @@ static rt_uint32_t uc8088_spi_spixfer(struct rt_spi_device* device, struct rt_sp
 
         /* calculate the start address */
         already_send_length = message->length - send_length - message_length;
-        send_buf = (rt_uint8_t*)message->send_buf + already_send_length;
-        recv_buf = (rt_uint8_t*)message->recv_buf + already_send_length;
+        send_buf = (rt_uint8_t *)message->send_buf + already_send_length;
+        recv_buf = (rt_uint8_t *)message->recv_buf + already_send_length;
 
         /* start once data exchange in DMA mode */
         if (message->send_buf && message->recv_buf)
@@ -404,21 +401,23 @@ static rt_uint32_t uc8088_spi_spixfer(struct rt_spi_device* device, struct rt_sp
                 spim_set_datalen(UC_SPIM, data_len);
                 spim_setup_dummy(UC_SPIM, 0, 0);
 #ifdef BSP_SPIM_TX_USING_DMA
-                Udma_Spim_Tx(UC_SPIM, (uint32_t*)data_buf, data_len / 4);
+                Udma_Spim_Tx(UC_SPIM, (uint32_t *)data_buf, data_len / 4);
 #else
-                spim_write_fifo(UC_SPIM, (int*)data_buf, data_len);
+                spim_write_fifo(UC_SPIM, (int *)data_buf, data_len);
 #endif
                 for (int i = 0; i < 10; i++)
-                    for (int j = 0; j < 1000; j++);
+                    for (int j = 0; j < 1000; j++)
+                        ;
 
                 //spim_start_transaction(UC_SPIM,SPIM_CMD_WR, cs->GPIO_Pin);
                 spim_start_transaction(UC_SPIM, SPIM_CMD_WR, SPIM_CSN0);
-                while ((spim_get_status(UC_SPIM) & 0xFFFF) != 1);
+                while ((spim_get_status(UC_SPIM) & 0xFFFF) != 1)
+                    ;
                 memset(data_buf, 0xff, 32);
 #ifdef BSP_SPIM_RX_USING_DMA
-                Udma_Spim_Rx(UC_SPIM, (uint32_t*)data_buf, data_len / 4);
+                Udma_Spim_Rx(UC_SPIM, (uint32_t *)data_buf, data_len / 4);
 #else
-                spim_read_fifo(UC_SPIM, (int*)data_buf, data_len);
+                spim_read_fifo(UC_SPIM, (int *)data_buf, data_len);
 #endif
                 for (index_offset = 0; index_offset < order_size; index_offset += 4)
                 {
@@ -469,16 +468,18 @@ static rt_uint32_t uc8088_spi_spixfer(struct rt_spi_device* device, struct rt_sp
                 spim_set_datalen(UC_SPIM, data_len);
                 spim_setup_dummy(UC_SPIM, 0, 0);
 #ifdef BSP_SPIM_TX_USING_DMA
-                Udma_Spim_Tx(UC_SPIM, (uint32_t*)data_buf, data_len / 4);
+                Udma_Spim_Tx(UC_SPIM, (uint32_t *)data_buf, data_len / 4);
 #else
-                spim_write_fifo(UC_SPIM, (int*)data_buf, data_len);
+                spim_write_fifo(UC_SPIM, (int *)data_buf, data_len);
 #endif
                 for (int i = 0; i < 10; i++)
-                    for (int j = 0; j < 1000; j++);
+                    for (int j = 0; j < 1000; j++)
+                        ;
 
                 //spim_start_transaction(UC_SPIM,SPIM_CMD_WR, cs->GPIO_Pin);
                 spim_start_transaction(UC_SPIM, SPIM_CMD_WR, SPIM_CSN0);
-                while ((spim_get_status(UC_SPIM) & 0xFFFF) != 1);
+                while ((spim_get_status(UC_SPIM) & 0xFFFF) != 1)
+                    ;
 
                 offset += order_size;
             }
@@ -509,11 +510,12 @@ static rt_uint32_t uc8088_spi_spixfer(struct rt_spi_device* device, struct rt_sp
                 spim_set_datalen(UC_SPIM, data_len);
                 //spim_start_transaction(UC_SPIM,SPIM_CMD_RD, cs->GPIO_Pin);
                 spim_start_transaction(UC_SPIM, SPIM_CMD_RD, SPIM_CSN0);
-                while ((spim_get_status(UC_SPIM) & 0xFFFF) != 1);
+                while ((spim_get_status(UC_SPIM) & 0xFFFF) != 1)
+                    ;
 #ifdef BSP_SPIM_RX_USING_DMA
-                Udma_Spim_Rx(UC_SPIM, (uint32_t*)data_buf, data_len / 4);
+                Udma_Spim_Rx(UC_SPIM, (uint32_t *)data_buf, data_len / 4);
 #else
-                spim_read_fifo(UC_SPIM, (int*)data_buf, data_len);
+                spim_read_fifo(UC_SPIM, (int *)data_buf, data_len);
 #endif
                 for (index_offset = 0; index_offset < order_size; index_offset += 4)
                 {
@@ -556,8 +558,8 @@ static rt_uint32_t uc8088_spi_spixfer(struct rt_spi_device* device, struct rt_sp
 }
 #endif
 
-static rt_err_t spi_configure(struct rt_spi_device* device,
-                              struct rt_spi_configuration* configuration)
+static rt_err_t spi_configure(struct rt_spi_device *device,
+                              struct rt_spi_configuration *configuration)
 {
     RT_ASSERT(device != RT_NULL);
     RT_ASSERT(configuration != RT_NULL);
@@ -569,7 +571,7 @@ static rt_err_t spi_configure(struct rt_spi_device* device,
 #endif
 }
 
-static rt_uint32_t spi_spixfer(struct rt_spi_device* device, struct rt_spi_message* message)
+static rt_uint32_t spi_spixfer(struct rt_spi_device *device, struct rt_spi_message *message)
 {
 #ifdef BSP_USING_SOFTWARE_SPIM
     return software_spi_spixfer(device, message);
@@ -579,9 +581,9 @@ static rt_uint32_t spi_spixfer(struct rt_spi_device* device, struct rt_spi_messa
 }
 
 static const struct rt_spi_ops uc8088_spi_ops =
-{
-    .configure = spi_configure,
-    .xfer = spi_spixfer,
+    {
+        .configure = spi_configure,
+        .xfer = spi_spixfer,
 };
 
 static int rt_hw_spi_bus_init(void)
@@ -599,14 +601,14 @@ static int rt_hw_spi_bus_init(void)
 /**
   * Attach the spi device to SPI bus, this function must be used after initialization.
   */
-rt_err_t rt_hw_spi_device_attach(const char* bus_name, const char* device_name, GPIO_TypeDef* cs_gpiox, uint16_t cs_gpio_pin)
+rt_err_t rt_hw_spi_device_attach(const char *bus_name, const char *device_name, GPIO_TypeDef *cs_gpiox, uint16_t cs_gpio_pin)
 {
     RT_ASSERT(bus_name != RT_NULL);
     RT_ASSERT(device_name != RT_NULL);
 
     rt_err_t result;
-    struct rt_spi_device* spi_device;
-    struct uc8088_hw_spi_cs* cs_pin;
+    struct rt_spi_device *spi_device;
+    struct uc8088_hw_spi_cs *cs_pin;
 
     /* initialize the cs pin && select the slave*/
     cs_gpiox = UC_GPIO;
@@ -616,13 +618,13 @@ rt_err_t rt_hw_spi_device_attach(const char* bus_name, const char* device_name, 
     gpio_set_pin_value(cs_gpiox, cs_gpio_pin, GPIO_VALUE_HIGH);
 
     /* attach the device to spi bus*/
-    spi_device = (struct rt_spi_device*)rt_malloc(sizeof(struct rt_spi_device));
+    spi_device = (struct rt_spi_device *)rt_malloc(sizeof(struct rt_spi_device));
     RT_ASSERT(spi_device != RT_NULL);
-    cs_pin = (struct uc8088_hw_spi_cs*)rt_malloc(sizeof(struct uc8088_hw_spi_cs));
+    cs_pin = (struct uc8088_hw_spi_cs *)rt_malloc(sizeof(struct uc8088_hw_spi_cs));
     RT_ASSERT(cs_pin != RT_NULL);
     cs_pin->GPIOx = cs_gpiox;
     cs_pin->GPIO_Pin = cs_gpio_pin;
-    result = rt_spi_bus_attach_device(spi_device, device_name, bus_name, (void*)cs_pin);
+    result = rt_spi_bus_attach_device(spi_device, device_name, bus_name, (void *)cs_pin);
 
     if (result != RT_EOK)
     {
@@ -658,4 +660,3 @@ INIT_COMPONENT_EXPORT(rt_hw_spi_flash_init);
 #endif
 
 #endif /* RT_USING_SPI */
-

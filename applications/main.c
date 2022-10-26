@@ -69,7 +69,10 @@ int main(void)
     // at_wiota_manager();
 #endif
 #else
+#ifdef WIOTA_API_TEST
     app_task_init();
+#endif
+
 #endif
 
 #if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)

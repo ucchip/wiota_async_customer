@@ -7,16 +7,16 @@
  * Date           Author       Notes
  * 2018-11-08     balanceTWK   first version
  */
-
+#include <rtthread.h>
+#ifdef RT_USING_I2C
+#ifdef RT_USING_I2C_BITOPS
 #include <board.h>
 #include "drv_soft_i2c.h"
 //#include "drv_config.h"
 #include "uc_timer.h"
 
-#ifdef RT_USING_I2C
-#ifdef RT_USING_I2C_BITOPS
 //#define DRV_DEBUG
-#define LOG_TAG              "drv.i2c"
+#define LOG_TAG "drv.i2c"
 #include <drv_log.h>
 
 #if !defined(BSP_USING_I2C1) && !defined(BSP_USING_I2C2) && !defined(BSP_USING_I2C3) && !defined(BSP_USING_I2C4)
@@ -25,18 +25,18 @@
 #endif
 
 static const struct uc8088_soft_i2c_config soft_i2c_config[] =
-{
+    {
 #ifdef BSP_USING_I2C1
-    I2C1_BUS_CONFIG,
+        I2C1_BUS_CONFIG,
 #endif
 #ifdef BSP_USING_I2C2
-    I2C2_BUS_CONFIG,
+        I2C2_BUS_CONFIG,
 #endif
 #ifdef BSP_USING_I2C3
-    I2C3_BUS_CONFIG,
+        I2C3_BUS_CONFIG,
 #endif
 #ifdef BSP_USING_I2C4
-    I2C4_BUS_CONFIG,
+        I2C4_BUS_CONFIG,
 #endif
 };
 
@@ -47,9 +47,9 @@ static struct uc8088_i2c i2c_obj[sizeof(soft_i2c_config) / sizeof(soft_i2c_confi
  *
  * @param uc8088 i2c dirver class.
  */
-static void uc8088_i2c_gpio_init(struct uc8088_i2c* i2c)
+static void uc8088_i2c_gpio_init(struct uc8088_i2c *i2c)
 {
-    struct uc8088_soft_i2c_config* cfg = (struct uc8088_soft_i2c_config*)i2c->ops.data;
+    struct uc8088_soft_i2c_config *cfg = (struct uc8088_soft_i2c_config *)i2c->ops.data;
 
     rt_pin_mode(cfg->scl, PIN_MODE_OUTPUT_OD);
     rt_pin_mode(cfg->sda, PIN_MODE_OUTPUT_OD);
@@ -64,9 +64,9 @@ static void uc8088_i2c_gpio_init(struct uc8088_i2c* i2c)
  * @param uc8088 config class.
  * @param The sda pin state.
  */
-static void uc8088_set_sda(void* data, rt_int32_t state)
+static void uc8088_set_sda(void *data, rt_int32_t state)
 {
-    struct uc8088_soft_i2c_config* cfg = (struct uc8088_soft_i2c_config*)data;
+    struct uc8088_soft_i2c_config *cfg = (struct uc8088_soft_i2c_config *)data;
     rt_pin_mode(cfg->sda, PIN_MODE_OUTPUT_OD);
     if (state)
     {
@@ -84,9 +84,9 @@ static void uc8088_set_sda(void* data, rt_int32_t state)
  * @param uc8088 config class.
  * @param The scl pin state.
  */
-static void uc8088_set_scl(void* data, rt_int32_t state)
+static void uc8088_set_scl(void *data, rt_int32_t state)
 {
-    struct uc8088_soft_i2c_config* cfg = (struct uc8088_soft_i2c_config*)data;
+    struct uc8088_soft_i2c_config *cfg = (struct uc8088_soft_i2c_config *)data;
     rt_pin_mode(cfg->scl, PIN_MODE_OUTPUT_OD);
     if (state)
     {
@@ -103,9 +103,9 @@ static void uc8088_set_scl(void* data, rt_int32_t state)
  *
  * @param The sda pin state.
  */
-static rt_int32_t uc8088_get_sda(void* data)
+static rt_int32_t uc8088_get_sda(void *data)
 {
-    struct uc8088_soft_i2c_config* cfg = (struct uc8088_soft_i2c_config*)data;
+    struct uc8088_soft_i2c_config *cfg = (struct uc8088_soft_i2c_config *)data;
     rt_pin_mode(cfg->sda, PIN_MODE_INPUT);
     return rt_pin_read(cfg->sda);
 }
@@ -115,9 +115,9 @@ static rt_int32_t uc8088_get_sda(void* data)
  *
  * @param The scl pin state.
  */
-static rt_int32_t uc8088_get_scl(void* data)
+static rt_int32_t uc8088_get_scl(void *data)
 {
-    struct uc8088_soft_i2c_config* cfg = (struct uc8088_soft_i2c_config*)data;
+    struct uc8088_soft_i2c_config *cfg = (struct uc8088_soft_i2c_config *)data;
     rt_pin_mode(cfg->scl, PIN_MODE_INPUT);
     return rt_pin_read(cfg->scl);
 }
@@ -130,7 +130,7 @@ static void uc8088_udelay(rt_uint32_t us)
 {
     rt_uint32_t ticks;
     rt_uint32_t told, tnow, tcnt = 0;
-    rt_uint32_t Compare_Value = ((rt_uint32_t)BSP_CLOCK_SYSTEM_FREQ_HZ)  / (5 * RT_TICK_PER_SECOND);
+    rt_uint32_t Compare_Value = ((rt_uint32_t)BSP_CLOCK_SYSTEM_FREQ_HZ) / (5 * RT_TICK_PER_SECOND);
 
     ticks = us * Compare_Value / (1000000 / RT_TICK_PER_SECOND);
     told = timer_get_count(UC_TIMER0);
@@ -157,16 +157,15 @@ static void uc8088_udelay(rt_uint32_t us)
 }
 
 static const struct rt_i2c_bit_ops uc8088_bit_ops_default =
-{
-    .data     = RT_NULL,
-    .set_sda  = uc8088_set_sda,
-    .set_scl  = uc8088_set_scl,
-    .get_sda  = uc8088_get_sda,
-    .get_scl  = uc8088_get_scl,
-    .udelay   = uc8088_udelay,
-    .delay_us = 1,
-    .timeout  = 100
-};
+    {
+        .data = RT_NULL,
+        .set_sda = uc8088_set_sda,
+        .set_scl = uc8088_set_scl,
+        .get_sda = uc8088_get_sda,
+        .get_scl = uc8088_get_scl,
+        .udelay = uc8088_udelay,
+        .delay_us = 1,
+        .timeout = 100};
 
 /**
  * if i2c is locked, this function will unlock it
@@ -175,7 +174,7 @@ static const struct rt_i2c_bit_ops uc8088_bit_ops_default =
  *
  * @return RT_EOK indicates successful unlock.
  */
-static rt_err_t uc8088_i2c_bus_unlock(const struct uc8088_soft_i2c_config* cfg)
+static rt_err_t uc8088_i2c_bus_unlock(const struct uc8088_soft_i2c_config *cfg)
 {
     rt_int32_t i = 0;
 
@@ -208,7 +207,7 @@ int rt_hw_i2c_init(void)
     for (int i = 0; i < obj_num; i++)
     {
         i2c_obj[i].ops = uc8088_bit_ops_default;
-        i2c_obj[i].ops.data = (void*)&soft_i2c_config[i];
+        i2c_obj[i].ops.data = (void *)&soft_i2c_config[i];
         i2c_obj[i].i2c2_bus.priv = &i2c_obj[i].ops;
         uc8088_i2c_gpio_init(&i2c_obj[i]);
         result = rt_i2c_bit_add_bus(&i2c_obj[i].i2c2_bus, soft_i2c_config[i].bus_name);

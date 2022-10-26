@@ -27,6 +27,8 @@
  *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <rtthread.h>
+#if defined(RT_USING_ADC) && defined(RT_USING_DAC)
 #include "uc_adda.h"
 #include "uc_pulpino.h"
 #include "uc_event.h"
@@ -39,6 +41,7 @@
 
 #define BIT(x)  (1 << (x))
 
+#ifdef RT_USING_ADC
 void temp_in_b_config(ADDA_TypeDef* ADDA)
 {
     ADDA->ADC_CTRL0 = 0x807F8E5A; //disable channel a, channel b, channel c and inside temp channel
@@ -181,29 +184,29 @@ void adc_fifo_clear(ADDA_TypeDef* ADDA)
 }
 
 
-unsigned int adc_temp_read_times(ADDA_TypeDef* ADDA) 
+unsigned int adc_temp_read_times(ADDA_TypeDef* ADDA)
 {
     adc_read(ADDA);
     return (unsigned int)adc_read(ADDA);
 }
 
 
-signed int adc_temperature_read(ADDA_TypeDef* ADDA) 
+signed int adc_temperature_read(ADDA_TypeDef* ADDA)
 {
     signed int adc_val;
     signed int adc_val1, adc_val2;
-    
+
     dc_off_control(1);
     adc_fifo_clear(ADDA);
     adc_wait_data_ready(ADDA);
     adc_wait_data_ready(ADDA);
     adc_val1 = adc_temp_read_times(ADDA);
-    
+
     dc_off_control(0);
     adc_fifo_clear(ADDA);
     adc_wait_data_ready(ADDA);
     adc_wait_data_ready(ADDA);
-    adc_val2 = adc_temp_read_times(ADDA); 
+    adc_val2 = adc_temp_read_times(ADDA);
 
     adc_val = (signed int)(adc_val2 - adc_val1);
 
@@ -252,7 +255,7 @@ float adc_read_temp_inb(ADDA_TypeDef* ADDA)
 //    val = (float)(1.42/4 + (delta_adc - 2048)* 1.42/2048/8);
 //    rt_kprintf("val = %f\n", rt_kprintf);
 //    }
-    
+
     return delta_adc;
 }
 
@@ -304,7 +307,9 @@ void adc_temp_sensor_enable(ADDA_TypeDef* ADDA, unsigned char enable)
     //ADDA->ADC_CTRL1 =  (ADDA->ADC_CTRL1 & (~(0x07<<18))) | (0x05 << 18);//set vcm trim
     //REG(0x1A104230) = (REG(0x1A104230) & (~(0x0f<<20))) | (12<<20);//calibrate voltage
 }
+#endif
 
+#ifdef RT_USING_DAC
 void dac_power_set(ADDA_TypeDef* ADDA)
 {
     CHECK_PARAM(PARAM_ADDC(ADDA));
@@ -410,7 +415,5 @@ void auxdac_level_set(ADDA_TypeDef* ADDA, uint16_t ele_level)
 
     ADDA->AUX_DAC_LV = ele_level;
 }
-
-
-
-
+#endif
+#endif

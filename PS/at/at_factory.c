@@ -1,10 +1,9 @@
 #include <rtthread.h>
 #ifdef RT_USING_AT
+#ifdef AT_USING_SERVER
 #ifdef UC8288_MODULE
 #ifdef UC8288_FACTORY
-#ifdef _RT_THREAD_
 #include <rtdevice.h>
-#endif
 #include <board.h>
 #include "uc_adda.h"
 #include "string.h"
@@ -27,9 +26,9 @@ enum factory_command_type
     FACTORY_AD = 3,   // 3
     FACTORY_DA = 4,   // 4
 #ifdef UC8288_DRV_TEST
-    FACTORY_I2C = 2, // 2
-    FACTORY_UART1 = 5,   //5
-    FACTORY_PWM = 6,     // 6
+    FACTORY_I2C = 2,   // 2
+    FACTORY_UART1 = 5, //5
+    FACTORY_PWM = 6,   // 6
     FACTORY_CAN = 7,
 #endif
 };
@@ -392,6 +391,7 @@ static at_result_t at_factory_setup(const char *args)
 
 AT_CMD_EXPORT("AT+FACTORY", "=<type>,<data>,<data1>", RT_NULL, RT_NULL, at_factory_setup, RT_NULL);
 
+#endif
 #endif
 #endif
 #endif

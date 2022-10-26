@@ -9,6 +9,7 @@
  */
 
 #include <rtthread.h>
+#ifdef WIOTA_API_TEST
 #include <rtdevice.h>
 #include "uc_wiota_api.h"
 #include "uc_wiota_static.h"
@@ -209,3 +210,4 @@ void app_task_init(void)
     uc_thread_create_test(&testTaskHandle, "test1", app_test_main_task, NULL, 256, 3, 3);
     rt_thread_startup((rt_thread_t)testTaskHandle);
 }
+#endif

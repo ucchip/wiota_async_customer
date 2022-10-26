@@ -1,13 +1,12 @@
-
-#include <board.h>
-#include<rtthread.h>
-#include<rtdevice.h>
-
+#include <rtthread.h>
 #ifdef RT_USING_PWM
+#include <board.h>
+#include <rtdevice.h>
+
 //#include "drv_config.h"
 
 //#define DRV_DEBUG
-#define LOG_TAG             "drv.pwm"
+#define LOG_TAG "drv.pwm"
 #include <drv_log.h>
 
 #include "uc_pwm.h"
@@ -31,40 +30,40 @@ enum
 
 #ifdef BSP_USING_PWM0
 #ifndef PWM0_CONFIG
-#define PWM0_CONFIG                             \
-    {                                           \
-        .pwm_handle     = UC_PWM0,         \
-                          .name                    = "pwm0",       \
+#define PWM0_CONFIG            \
+    {                          \
+        .pwm_handle = UC_PWM0, \
+        .name = "pwm0",        \
     }
 #endif /* PWM0_CONFIG */
 #endif /* BSP_USING_PWM0 */
 
 #ifdef BSP_USING_PWM1
 #ifndef PWM1_CONFIG
-#define PWM1_CONFIG                             \
-    {                                           \
-        .pwm_handle     = UC_PWM1,         \
-                          .name                    = "pwm1",       \
+#define PWM1_CONFIG            \
+    {                          \
+        .pwm_handle = UC_PWM1, \
+        .name = "pwm1",        \
     }
 #endif /* PWM1_CONFIG */
 #endif /* BSP_USING_PWM1 */
 
 #ifdef BSP_USING_PWM2
 #ifndef PWM2_CONFIG
-#define PWM2_CONFIG                             \
-    {                                           \
-        .pwm_handle     = UC_PWM2,         \
-                          .name                    = "pwm2",       \
+#define PWM2_CONFIG            \
+    {                          \
+        .pwm_handle = UC_PWM2, \
+        .name = "pwm2",        \
     }
 #endif /* PWM2_CONFIG */
 #endif /* BSP_USING_PWM2 */
 
 #ifdef BSP_USING_PWM3
 #ifndef PWM3_CONFIG
-#define PWM3_CONFIG                             \
-    {                                           \
-        .pwm_handle     = UC_PWM3,         \
-                          .name                    = "pwm3",       \
+#define PWM3_CONFIG            \
+    {                          \
+        .pwm_handle = UC_PWM3, \
+        .name = "pwm3",        \
     }
 #endif /* PWM3_CONFIG */
 #endif /* BSP_USING_PWM3 */
@@ -72,37 +71,36 @@ enum
 struct uc8x88_pwm
 {
     struct rt_device_pwm pwm_device;
-    PWM_TypeDef* pwm_handle;
+    PWM_TypeDef *pwm_handle;
     rt_uint8_t channel;
-    char* name;
+    char *name;
 };
 
 static struct uc8x88_pwm uc8x88_pwm_obj[] =
-{
+    {
 #ifdef BSP_USING_PWM0
-    PWM0_CONFIG,
+        PWM0_CONFIG,
 #endif
 
 #ifdef BSP_USING_PWM1
-    PWM1_CONFIG,
+        PWM1_CONFIG,
 #endif
 
 #ifdef BSP_USING_PWM2
-    PWM2_CONFIG,
+        PWM2_CONFIG,
 #endif
 
 #ifdef BSP_USING_PWM3
-    PWM3_CONFIG,
+        PWM3_CONFIG,
 #endif
 };
 
-static rt_err_t drv_pwm_control(struct rt_device_pwm* device, int cmd, void* arg);
+static rt_err_t drv_pwm_control(struct rt_device_pwm *device, int cmd, void *arg);
 static struct rt_pwm_ops drv_ops =
-{
-    drv_pwm_control
-};
+    {
+        drv_pwm_control};
 
-static rt_err_t drv_pwm_enable(PWM_TypeDef* hpwm, struct rt_pwm_configuration* configuration, rt_bool_t enable)
+static rt_err_t drv_pwm_enable(PWM_TypeDef *hpwm, struct rt_pwm_configuration *configuration, rt_bool_t enable)
 {
     if (enable)
     {
@@ -116,7 +114,7 @@ static rt_err_t drv_pwm_enable(PWM_TypeDef* hpwm, struct rt_pwm_configuration* c
     return RT_EOK;
 }
 
-static rt_err_t drv_pwm_get(PWM_TypeDef* hpwm, struct rt_pwm_configuration* configuration)
+static rt_err_t drv_pwm_get(PWM_TypeDef *hpwm, struct rt_pwm_configuration *configuration)
 {
     uint32_t pwm_count = 0;
     uint32_t pwm_duty = 0;
@@ -129,7 +127,7 @@ static rt_err_t drv_pwm_get(PWM_TypeDef* hpwm, struct rt_pwm_configuration* conf
     return RT_EOK;
 }
 
-static rt_err_t drv_pwm_set(PWM_TypeDef* hpwm, struct rt_pwm_configuration* configuration)
+static rt_err_t drv_pwm_set(PWM_TypeDef *hpwm, struct rt_pwm_configuration *configuration)
 {
     uint32_t pwm_count = 0;
     uint32_t pwm_duty = 0;
@@ -142,34 +140,34 @@ static rt_err_t drv_pwm_set(PWM_TypeDef* hpwm, struct rt_pwm_configuration* conf
     return RT_EOK;
 }
 
-static rt_err_t drv_pwm_control(struct rt_device_pwm* device, int cmd, void* arg)
+static rt_err_t drv_pwm_control(struct rt_device_pwm *device, int cmd, void *arg)
 {
-    struct rt_pwm_configuration* configuration = (struct rt_pwm_configuration*)arg;
-    PWM_TypeDef* hpwm = (PWM_TypeDef*)device->parent.user_data;
+    struct rt_pwm_configuration *configuration = (struct rt_pwm_configuration *)arg;
+    PWM_TypeDef *hpwm = (PWM_TypeDef *)device->parent.user_data;
 
     switch (cmd)
     {
-        case PWM_CMD_ENABLE:
-            return drv_pwm_enable(hpwm, configuration, RT_TRUE);
-        case PWM_CMD_DISABLE:
-            return drv_pwm_enable(hpwm, configuration, RT_FALSE);
-        case PWM_CMD_SET:
-            return drv_pwm_set(hpwm, configuration);
-        case PWM_CMD_GET:
-            return drv_pwm_get(hpwm, configuration);
-        default:
-            return RT_EINVAL;
+    case PWM_CMD_ENABLE:
+        return drv_pwm_enable(hpwm, configuration, RT_TRUE);
+    case PWM_CMD_DISABLE:
+        return drv_pwm_enable(hpwm, configuration, RT_FALSE);
+    case PWM_CMD_SET:
+        return drv_pwm_set(hpwm, configuration);
+    case PWM_CMD_GET:
+        return drv_pwm_get(hpwm, configuration);
+    default:
+        return RT_EINVAL;
     }
 }
 
-static rt_err_t uc8x88_hw_pwm_init(struct uc8x88_pwm* device)
+static rt_err_t uc8x88_hw_pwm_init(struct uc8x88_pwm *device)
 {
     rt_err_t result = RT_EOK;
-    PWM_TypeDef* pwm = RT_NULL;
+    PWM_TypeDef *pwm = RT_NULL;
 
     RT_ASSERT(device != RT_NULL);
 
-    pwm = (PWM_TypeDef*)device->pwm_handle;
+    pwm = (PWM_TypeDef *)device->pwm_handle;
 
     if (pwm == UC_PWM0)
     {
@@ -227,4 +225,3 @@ __exit:
 }
 INIT_DEVICE_EXPORT(uc8x88_pwm_init);
 #endif /* RT_USING_PWM */
-
