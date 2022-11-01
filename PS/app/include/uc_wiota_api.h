@@ -84,8 +84,7 @@ typedef enum
 typedef enum
 {
     UC_RATE_NORMAL = 0,
-    UC_RATE_MID,
-    UC_RATE_HIGH,
+    UC_RATE_OTHER,
 } UC_DATA_RATE_MODE;
 
 typedef enum
@@ -269,7 +268,7 @@ void uc_wiota_get_system_config(sub_system_config_t *config);
 
 void uc_wiota_get_radio_info(radio_info_t *radio);
 
-UC_OP_RESULT uc_wiota_send_data(unsigned int userId, unsigned char *data, unsigned short len, unsigned short timeout, uc_send callback);
+UC_OP_RESULT uc_wiota_send_data(unsigned int userId, unsigned char *data, unsigned short len, unsigned int timeout, uc_send callback);
 
 // void uc_wiota_recv_data(uc_recv_back_p recv_result, unsigned short timeout, uc_recv callback);
 
@@ -335,6 +334,7 @@ void uc_wiota_sleep_enter(unsigned char is_need_ex_wk);
 
 void uc_wiota_set_recv_mode(UC_AUTO_RECV_MODE mode);
 
+unsigned short uc_wiota_get_subframe_data_len(unsigned char mcs, unsigned char is_bc);
 
 // below is about uboot
 void get_uboot_version(unsigned char *version);

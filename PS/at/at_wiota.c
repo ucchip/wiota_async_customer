@@ -160,7 +160,7 @@ static at_result_t at_freq_setup(const char *args)
 
     WIOTA_CHECK_AUTOMATIC_MANAGER();
 
-    WIOTA_MUST_INIT(wiota_state)
+    // WIOTA_MUST_INIT(wiota_state)
 
     args = parse((char *)(++args), "d", &freq);
     if (!args)
@@ -376,6 +376,7 @@ static at_result_t at_wiotasend_setup(const char *args)
     unsigned char *sendbuffer = NULL;
     unsigned char *psendbuffer;
     unsigned int userId = 0;
+    unsigned int timeout_u = 0;
 
     if (AT_WIOTA_RUN != wiota_state)
     {
@@ -387,6 +388,8 @@ static at_result_t at_wiotasend_setup(const char *args)
     {
         return AT_RESULT_PARSE_FAILE;
     }
+
+    timeout_u = (unsigned int)timeout;
 
     // rt_kprintf("timeout=%d, length=%d\n", timeout, length);
 
@@ -417,7 +420,7 @@ static at_result_t at_wiotasend_setup(const char *args)
             psendbuffer++;
         }
 
-        if (UC_OP_SUCC == uc_wiota_send_data(userId, sendbuffer, psendbuffer - sendbuffer, timeout > 0 ? timeout : WIOTA_SEND_TIMEOUT, RT_NULL))
+        if (UC_OP_SUCC == uc_wiota_send_data(userId, sendbuffer, psendbuffer - sendbuffer, timeout_u > 0 ? timeout_u : WIOTA_SEND_TIMEOUT, RT_NULL))
         {
             rt_free(sendbuffer);
             sendbuffer = NULL;
@@ -1107,7 +1110,7 @@ static at_result_t at_wiota_wait_cnt_setup(const char *args)
 
     args = parse((char *)(++args), "d", &number);
 
-    if (!args || number <= 0)
+    if (!args)
     {
         return AT_RESULT_PARSE_FAILE;
     }
