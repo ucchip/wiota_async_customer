@@ -1,0 +1,6 @@
+
+1. 保存静态数据接口问题解决
+2. 低功耗demo
+3. uc_wiota_set_wait_cnt改为uc_wiota_set_detect_time，参数单位ms
+4. 降频是的系统timer更新
+
