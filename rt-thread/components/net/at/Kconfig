@@ -18,7 +18,7 @@ if RT_USING_AT
 
         config AT_SERVER_DEVICE
             string "Server device name"
-            default "uart3"
+            default "uart0"
 
         config AT_SERVER_RECV_BUFF_LEN
             int "The maximum length of server data accepted"

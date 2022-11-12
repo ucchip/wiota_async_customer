@@ -132,6 +132,7 @@ typedef enum
     FREQ_DIV_MODE_12 = 6, // 8M
     FREQ_DIV_MODE_14 = 7, // 48/7 M
     FREQ_DIV_MODE_16 = 8, // 6M
+    FREQ_DIV_MODE_32 = 9, // 3M
     FREQ_DIV_MODE_MAX,
 } UC_FREQ_DIV_MODE_E;
 
@@ -166,9 +167,9 @@ typedef struct
 {
     char reserved0;
     unsigned char id_len;        // 0: 2, 1: 4, 2: 6, 3: 8
-    unsigned char pn_num;        // 0: 1, 1: 2, 2: 4, 3: not use
+    unsigned char pp;            // 0: 1, 1: 2, 2: 4, 3: not use
     unsigned char symbol_length; // 128,256,512,1024
-    unsigned char zc_num;        // default 8
+    unsigned char pz;            // default 8
     unsigned char btvalue; //bt from rf 1: 0.3, 0: 1.2
     unsigned char reserved2;
     unsigned char spectrum_idx; //default 3, 470M~510M;
@@ -310,7 +311,7 @@ unsigned char uc_wiota_get_subframe_num(void);
 
 void uc_wiota_set_bc_round(unsigned char bc_round);
 
-void uc_wiota_set_wait_cnt(unsigned int wait_cnt);
+void uc_wiota_set_detect_time(unsigned int wait_cnt);
 
 void uc_wiota_set_bandwidth(unsigned char bandwidth);
 

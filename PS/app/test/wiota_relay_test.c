@@ -8,7 +8,7 @@
 //define ONLY_SEND_TEST is send.(contine send, delay 5s)
 //no define ONLY_SEND_TEST, only relay data.(contine send, delay 5s)
 
-//#define ONLY_SEND_TEST
+// #define ONLY_SEND_TEST
 
 typedef struct
 {
@@ -171,7 +171,7 @@ static void test_async_relay_task(void *pPara)
     // test! whole config
     uc_wiota_get_system_config(&wiota_config);
     //rt_kprintf("config show %d %d %d %d 0x%x 0x%x\n",
-    //           wiota_config.id_len, wiota_config.pn_num, wiota_config.symbol_length,
+    //           wiota_config.id_len, wiota_config.pp, wiota_config.symbol_length,
     //           wiota_config.btvalue, wiota_config.systemid, wiota_config.subsystemid);
 
     wiota_config.symbol_length = 3; // 3->1024
@@ -193,7 +193,7 @@ static void test_async_relay_task(void *pPara)
 
     uc_wiota_set_bc_round(6);
 
-    uc_wiota_set_wait_cnt(10);
+    uc_wiota_set_detect_time(10);
 
     uc_wiota_run();
 
