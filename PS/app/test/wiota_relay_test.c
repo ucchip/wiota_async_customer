@@ -137,7 +137,7 @@ static void test_async_send_data(void *data, int len)
     for(num = 0; num < 3; num++)
     {
         //async_test_data *bf = data;
-        result = uc_wiota_send_data(0, data, len, 20000, NULL);
+        result = uc_wiota_send_data(0, data, len, NULL, 0, 20000, NULL);
 
         //bf->num ++;
         rt_kprintf("====>uc_wiota_send_data result %d\n", result);
@@ -175,6 +175,7 @@ static void test_async_relay_task(void *pPara)
     //           wiota_config.btvalue, wiota_config.systemid, wiota_config.subsystemid);
 
     wiota_config.symbol_length = 3; // 3->1024
+    wiota_config.bandwidth = 4; // 4->25k
     uc_wiota_set_system_config(&wiota_config);
 
     uc_wiota_get_freq_list(freq_list);
@@ -188,8 +189,6 @@ static void test_async_relay_task(void *pPara)
     uc_wiota_set_data_rate(0, 0);
 
     uc_wiota_set_subframe_num(4);
-
-    uc_wiota_set_bandwidth(4);//4->25k
 
     uc_wiota_set_bc_round(6);
 

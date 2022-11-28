@@ -195,7 +195,7 @@ void app_test_case_recv(void)
             {
                 testData[i] = algo_rand() & 0xFF;
             }
-            result = uc_wiota_send_data(0, testData, send_len, 10000, NULL);
+            result = uc_wiota_send_data(0, testData, send_len, NULL, 0, 10000, NULL);
 #ifdef UC8288_MODULE
 #ifdef RT_USING_AT
             at_server_printfln("app send data result %d cnt %d", result, app_count - 48);
@@ -317,7 +317,7 @@ void app_test_case_send(void)
             {
                 testData[i] = algo_rand() & 0xFF;
             }
-            result = uc_wiota_send_data(0, testData, send_len, 10000, NULL);
+            result = uc_wiota_send_data(0, testData, send_len, NULL, 0, 10000, NULL);
 #ifdef UC8288_MODULE
 #ifdef RT_USING_AT
             at_server_printfln("app send data result %d cnt %d", result, app_count - 48);

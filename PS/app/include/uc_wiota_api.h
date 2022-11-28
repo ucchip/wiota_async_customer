@@ -33,7 +33,9 @@ typedef unsigned char boolean;
 
 #define CRC16_LEN 2
 
-#define PARTIAL_FAIL_NUM 6
+#define PARTIAL_FAIL_NUM 8
+
+#define UC_USER_HEAD_SIZE 3
 
 typedef enum
 {
@@ -150,6 +152,12 @@ typedef enum
     UC_AUTO_RECV_ERROR,
 } UC_AUTO_RECV_MODE;
 
+typedef enum
+{
+    ADJUST_MODE_SEND = 0,
+    ADJUST_MODE_RECV = 1,
+} UC_ADJUST_MODE;
+
 typedef struct
 {
     unsigned char rssi; // absolute value, 0~150, always negative
@@ -171,11 +179,12 @@ typedef struct
     unsigned char symbol_length; // 128,256,512,1024
     unsigned char pz;            // default 8
     unsigned char btvalue; //bt from rf 1: 0.3, 0: 1.2
-    unsigned char reserved2;
+    unsigned char bandwidth;    // default 1, 200KHz
     unsigned char spectrum_idx; //default 3, 470M~510M;
     unsigned int systemid;
     unsigned int subsystemid;
-    unsigned char na[48];
+    unsigned char freq_list[16];
+    unsigned char na[32];
 } sub_system_config_t;
 
 typedef struct
@@ -195,8 +204,12 @@ typedef struct
     unsigned char result; // UC_OP_RESULT
     unsigned char type;
     unsigned short data_len;
-    unsigned char *data;                      // if result is UC_OP_SUCC or UC_OP_PART_SUCC, data is not null, need free
+    unsigned char rssi;   // absolute value, 0~150, always negative
+    signed char snr;
+    unsigned char reserved;
+    unsigned char headData[UC_USER_HEAD_SIZE];// bc head data of user
     unsigned short packet_size;               // indicate packet size
+    unsigned char *data;                      // if result is UC_OP_SUCC or UC_OP_PART_SUCC, data is not null, need free
     unsigned char fail_idx[PARTIAL_FAIL_NUM]; // packet number 1 ~ 255, if 0, means no packet fail, like 1,2,0,0... means only packet 1 and 2 is fail.
 } uc_recv_back_t, *uc_recv_back_p;
 
@@ -269,7 +282,7 @@ void uc_wiota_get_system_config(sub_system_config_t *config);
 
 void uc_wiota_get_radio_info(radio_info_t *radio);
 
-UC_OP_RESULT uc_wiota_send_data(unsigned int userId, unsigned char *data, unsigned short len, unsigned int timeout, uc_send callback);
+UC_OP_RESULT uc_wiota_send_data(unsigned int userId, unsigned char *data, unsigned short len, unsigned char *bcHead, unsigned char headLen, unsigned int timeout, uc_send callback);
 
 // void uc_wiota_recv_data(uc_recv_back_p recv_result, unsigned short timeout, uc_recv callback);
 
@@ -313,7 +326,7 @@ void uc_wiota_set_bc_round(unsigned char bc_round);
 
 void uc_wiota_set_detect_time(unsigned int wait_cnt);
 
-void uc_wiota_set_bandwidth(unsigned char bandwidth);
+// void uc_wiota_set_bandwidth(unsigned char bandwidth);
 
 unsigned int uc_wiota_get_frame_len(unsigned char type);
 
@@ -336,6 +349,8 @@ void uc_wiota_sleep_enter(unsigned char is_need_ex_wk);
 void uc_wiota_set_recv_mode(UC_AUTO_RECV_MODE mode);
 
 unsigned short uc_wiota_get_subframe_data_len(unsigned char mcs, unsigned char is_bc);
+
+void uc_wiota_set_adjust_mode(UC_ADJUST_MODE adjust_mode);
 
 // below is about uboot
 void get_uboot_version(unsigned char *version);
