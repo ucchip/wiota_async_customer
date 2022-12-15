@@ -35,7 +35,11 @@ typedef unsigned char boolean;
 
 #define PARTIAL_FAIL_NUM 8
 
-#define UC_USER_HEAD_SIZE 3
+#define UC_USER_HEAD_SIZE 2
+
+#define UC_BC_LENGTH_LIMIT 1021
+
+#define UC_DATA_LENGTH_LIMIT 310
 
 typedef enum
 {
@@ -207,7 +211,8 @@ typedef struct
     unsigned char rssi;   // absolute value, 0~150, always negative
     signed char snr;
     unsigned char reserved;
-    unsigned char headData[UC_USER_HEAD_SIZE];// bc head data of user
+    unsigned char head_right;  // indicate headData is right or not
+    unsigned char head_data[UC_USER_HEAD_SIZE];// bc head data of user
     unsigned short packet_size;               // indicate packet size
     unsigned char *data;                      // if result is UC_OP_SUCC or UC_OP_PART_SUCC, data is not null, need free
     unsigned char fail_idx[PARTIAL_FAIL_NUM]; // packet number 1 ~ 255, if 0, means no packet fail, like 1,2,0,0... means only packet 1 and 2 is fail.
@@ -348,9 +353,13 @@ void uc_wiota_sleep_enter(unsigned char is_need_ex_wk);
 
 void uc_wiota_set_recv_mode(UC_AUTO_RECV_MODE mode);
 
-unsigned short uc_wiota_get_subframe_data_len(unsigned char mcs, unsigned char is_bc);
+unsigned short uc_wiota_get_subframe_data_len(unsigned char mcs, unsigned char is_bc, unsigned char is_first);
 
 void uc_wiota_set_adjust_mode(UC_ADJUST_MODE adjust_mode);
+
+void uc_wiota_set_unisend_fail_cnt(unsigned char cnt);
+
+
 
 // below is about uboot
 void get_uboot_version(unsigned char *version);

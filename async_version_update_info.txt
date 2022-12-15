@@ -4,3 +4,13 @@
 3. uc_wiota_set_wait_cnt改为uc_wiota_set_detect_time，参数单位ms
 4. 降频是的系统timer更新
 
+async v2.4
+	1. uc_boot_strap.c中增加分频比的初始化
+	2. 单播重发次数api
+	3. 广播head data改为2字节
+	4. 协议栈初始化启动时间缩短
+	5. 数据发送长度限制更新，广播1021 bytes，单播310 bytes
+	6. 非全接收模式，改为在接收侧配置
+	7. 广播时，每个子帧的承载应用数据量增加2bytes
+	8. uc_wiota_get_subframe_data_len接口更新
+	9. 单播接收侧的ack发送功率与发送侧一致

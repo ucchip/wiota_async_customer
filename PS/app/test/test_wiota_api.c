@@ -127,6 +127,7 @@ void app_test_case_recv(void)
                wiota_config.btvalue, wiota_config.systemid, wiota_config.subsystemid);
 
     wiota_config.symbol_length = 1; // 256,1024
+     wiota_config.bandwidth = 4;
     wiota_config.pz = 4;    // for lpm test
     uc_wiota_set_system_config(&wiota_config);
 
@@ -149,8 +150,6 @@ void app_test_case_recv(void)
     uc_wiota_set_data_rate(0, 0);
 
     uc_wiota_set_subframe_num(4);
-
-    uc_wiota_set_bandwidth(4);
 
     // uc_wiota_set_recv_mode(UC_AUTO_RECV_STOP);  // no recv
 
@@ -238,6 +237,7 @@ void app_test_case_send(void)
                wiota_config.btvalue, wiota_config.systemid, wiota_config.subsystemid);
 
     wiota_config.symbol_length = 1; // 256,1024
+    wiota_config.bandwidth = 4;
     wiota_config.pz = 4;    // for lpm test
     uc_wiota_set_system_config(&wiota_config);
 
@@ -260,8 +260,6 @@ void app_test_case_send(void)
     uc_wiota_set_data_rate(0, 0);
 
     uc_wiota_set_subframe_num(4);
-
-    uc_wiota_set_bandwidth(4);
 
     uc_wiota_set_recv_mode(UC_AUTO_RECV_STOP);  // no recv
 
