@@ -1,0 +1,12 @@
+.codelite/
+.vscode/
+rt-thread/tools/
+build/
+Debug/
+*.mk
+*.txt
+*.uzf
+*.pyc
+*.map
+*.asm
+*.dblite

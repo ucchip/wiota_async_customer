@@ -167,6 +167,8 @@ unsigned char* uc_wiota_get_user_info(void);
  */
 void uc_wiota_save_static_info(void);
 
+void uc_wiota_save_static_info_direct(void);
+
 /**
  * @brief  erase 4KB flash with 0xFF
  *

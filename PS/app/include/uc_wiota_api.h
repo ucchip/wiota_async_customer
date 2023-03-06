@@ -52,6 +52,7 @@ typedef enum
     UC_RECV_MSG = 0,   // normal msg
     UC_RECV_BC,        // broadcast msg
     UC_RECV_SCAN_FREQ, // result of freq scan by riscv
+    UC_RECV_PHY_RESET, // if phy reseted once, tell app
     UC_RECV_MAX_TYPE,
 } UC_RECV_DATA_TYPE;
 
@@ -181,11 +182,11 @@ typedef struct
     char reserved0;
     unsigned char id_len;        // 0: 2, 1: 4, 2: 6, 3: 8
     unsigned char pp;            // 0: 1, 1: 2, 2: 4, 3: not use
-    unsigned char symbol_length; // 128,256,512,1024
+    unsigned char symbol_length; // 0: 128, 1: 256, 2: 512, 3: 1024
     unsigned char pz;            // default 8
-    unsigned char btvalue;       //bt from rf 1: 0.3, 0: 1.2
+    unsigned char btvalue;       // bt from rf 1: 0.3, 0: 1.2
     unsigned char bandwidth;     // default 1, 200KHz
-    unsigned char spectrum_idx;  //default 3, 470M~510M;
+    unsigned char spectrum_idx;  // default 3, 470M~510M;
     unsigned int systemid;
     unsigned int subsystemid;
     unsigned char freq_list[16];
@@ -258,6 +259,32 @@ typedef struct
     unsigned int uni_recv_succ_data_len;
     unsigned int bc_recv_succ_data_len;
 } uc_throughput_info_t, *uc_throughput_info_p;
+
+typedef struct
+{
+    unsigned char freq;
+    unsigned char spectrum_idx;
+    unsigned char bandwidth;
+    unsigned char symbol_length;
+    unsigned short awaken_id; // indicate which id should send
+    unsigned short reserved;
+    unsigned int send_time; // ms, at least rx detect period
+} uc_lpm_tx_cfg_t, *uc_lpm_tx_cfg_p;
+
+typedef struct
+{
+    unsigned char freq;
+    unsigned char spectrum_idx;
+    unsigned char bandwidth;
+    unsigned char symbol_length;
+    unsigned char lpm_nlen; // 1,2,3,4, default 4
+    unsigned char lpm_utimes; // 1,2,3, default 2
+    unsigned char threshold; // detect threshold, 1~15, default 10
+    unsigned char reserved0;
+    unsigned short awaken_id; // indicate which id should detect
+    unsigned short reserved;
+    unsigned int detect_period; // ms, like 1000 ms
+} uc_lpm_rx_cfg_t, *uc_lpm_rx_cfg_p;
 
 typedef void (*uc_recv)(uc_recv_back_p recv_data);
 typedef void (*uc_send)(uc_send_back_p send_result);
@@ -359,6 +386,20 @@ void uc_wiota_set_adjust_mode(UC_ADJUST_MODE adjust_mode);
 void uc_wiota_set_unisend_fail_cnt(unsigned char cnt);
 
 void uc_wiota_scan_freq(unsigned char* data, unsigned short len, unsigned char scan_round, unsigned int timeout, uc_recv callback, uc_recv_back_p recv_result);
+
+void uc_wiota_paging_rx_enter(void);
+
+void uc_wiota_paging_tx_start(void);
+
+void uc_wiota_set_paging_tx_cfg(uc_lpm_tx_cfg_t *config);
+
+void uc_wiota_set_paging_rx_cfg(uc_lpm_rx_cfg_t *config);
+
+void uc_wiota_get_paging_tx_cfg(uc_lpm_tx_cfg_t *config);
+
+void uc_wiota_get_paging_rx_cfg(uc_lpm_rx_cfg_t *config);
+
+u16_t uc_wiota_get_awaken_id_limit(u8_t symbol_len);
 
 // below is about uboot
 void get_uboot_version(unsigned char *version);
