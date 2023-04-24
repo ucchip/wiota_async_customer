@@ -44,7 +44,7 @@ typedef unsigned char boolean;
 typedef enum
 {
     UC_CALLBACK_NORAMAL_MSG = 0, // normal msg from ap
-    UC_CALLBACK_STATE_INFO,      // state info, not support now
+    UC_CALLBACK_STATE_INFO,      // state info
 } UC_CALLBACK_DATA_TYPE;
 
 typedef enum
@@ -212,7 +212,7 @@ typedef struct
     unsigned short data_len;
     unsigned char rssi; // absolute value, 0~150, always negative
     signed char snr;
-    unsigned char reserved;
+    unsigned char sender_pow;                   // the power of sender, only effective when UC_RECV_MSG
     unsigned char head_right;                   // indicate headData is right or not
     unsigned char head_data[UC_USER_HEAD_SIZE]; // bc head data of user
     unsigned short packet_size;                 // indicate packet size
@@ -280,11 +280,19 @@ typedef struct
     unsigned char lpm_nlen; // 1,2,3,4, default 4
     unsigned char lpm_utimes; // 1,2,3, default 2
     unsigned char threshold; // detect threshold, 1~15, default 10
-    unsigned char reserved0;
+    unsigned char extra_flag; // defalut, if set 1, last period will use extra_period, then wake up
     unsigned short awaken_id; // indicate which id should detect
     unsigned short reserved;
     unsigned int detect_period; // ms, like 1000 ms
+    unsigned int extra_period; // ms, extra new period before wake up
 } uc_lpm_rx_cfg_t, *uc_lpm_rx_cfg_p;
+
+typedef struct
+{
+    unsigned short data_len;
+    unsigned short reserved;
+    unsigned char *data;
+} uc_subf_data_t, *uc_subf_data_p;
 
 typedef void (*uc_recv)(uc_recv_back_p recv_data);
 typedef void (*uc_send)(uc_send_back_p send_result);
@@ -365,6 +373,8 @@ u32_t uc_wiota_get_subframe_len(void);
 
 void uc_wiota_set_continue_send(unsigned char c_send_flag);
 
+void uc_wiota_set_subframe_send(unsigned char s_send_flag);
+
 void uc_wiota_set_incomplete_recv(unsigned char recv_flag);
 
 void uc_wiota_set_tx_mode(unsigned char mode);
@@ -373,9 +383,9 @@ void uc_wiota_set_freq_div(unsigned char div_mode);
 
 void uc_wiota_set_vol_mode(unsigned char vol_mode);
 
-void uc_wiota_set_alarm_time(u32_t sec);
+void uc_wiota_set_alarm_time(unsigned int sec);
 
-void uc_wiota_sleep_enter(unsigned char is_need_ex_wk);
+void uc_wiota_sleep_enter(unsigned char is_need_ex_wk, unsigned char is_need_32k_div);
 
 void uc_wiota_set_recv_mode(UC_AUTO_RECV_MODE mode);
 
@@ -387,7 +397,7 @@ void uc_wiota_set_unisend_fail_cnt(unsigned char cnt);
 
 void uc_wiota_scan_freq(unsigned char* data, unsigned short len, unsigned char scan_round, unsigned int timeout, uc_recv callback, uc_recv_back_p recv_result);
 
-void uc_wiota_paging_rx_enter(void);
+void uc_wiota_paging_rx_enter(unsigned char is_need_32k_div);
 
 void uc_wiota_paging_tx_start(void);
 
@@ -399,7 +409,17 @@ void uc_wiota_get_paging_tx_cfg(uc_lpm_tx_cfg_t *config);
 
 void uc_wiota_get_paging_rx_cfg(uc_lpm_rx_cfg_t *config);
 
-u16_t uc_wiota_get_awaken_id_limit(u8_t symbol_len);
+u16_t uc_wiota_get_awaken_id_limit(unsigned char symbol_len);
+
+boolean uc_wiota_add_subframe_data(uc_subf_data_p subf_data);
+
+void uc_wiota_get_subframe_data(uc_subf_data_p subf_data);
+
+unsigned int uc_wiota_get_subframe_data_num(unsigned char is_recv);
+
+void uc_wiota_set_subframe_data_limit(u32_t num_limit);
+
+boolean uc_wiota_is_pyhsical_idle(void);
 
 // below is about uboot
 void get_uboot_version(unsigned char *version);

@@ -519,8 +519,10 @@ void rtc_set_alarm(RTC_TypeDef *RTCx, rtc_alarm_t *rtc_alarm)
     RTCx->AS0 = RTC_MAKE_HMS(rtc_alarm->hour, rtc_alarm->min, rtc_alarm->sec);
     RTCx->AS1 = RTC_MAKE_YMDW(rtc_alarm->year, rtc_alarm->mon, rtc_alarm->day, rtc_alarm->week);
 
-    RTCx->ACTRL = (RTCx->ACTRL & 0x7f) | rtc_alarm->mask; //set rtc alarm mask
-    RTCx->ACTRL |= (1U << 8);                             //enable rtc alarm
+    // RTCx->ACTRL = (RTCx->ACTRL & 0x7f) | rtc_alarm->mask;
+    RTCx->ACTRL = (RTCx->ACTRL & 0xff00) | rtc_alarm->mask; //set rtc alarm mask
+
+    RTCx->ACTRL |= (1U << 8); //enable rtc alarm
 }
 
 void rtc_get_alarm(RTC_TypeDef *RTCx, rtc_alarm_t *rtc_alarm)
@@ -558,6 +560,7 @@ void rtc_disable_alarm_interrupt(RTC_TypeDef *RTCx)
 {
     CHECK_PARAM(PARAM_RTC_ADDR(RTCx));
     IER &= ~(1U << 0);
+    RTCx->ACTRL &= ~BIT(9);
 }
 
 void rtc_clear_alarm_pending(RTC_TypeDef *RTCx)
@@ -686,7 +689,7 @@ static void afc_measure(int *data)
     // enable afc
     *(volatile int *)(AFC_RESET) |= 0x1 << 3;
     // set afc cont
-    *(volatile int *)(AFC_HCY) = 384000;
+    *(volatile int *)(AFC_HCY) = 375000;  //  96M / 128 / 32.768K
     // select 128 cycle
     *(volatile int *)(AFC_SEC) = 0x0;
     // reset afc
@@ -702,12 +705,36 @@ static void afc_measure(int *data)
     data[1] = *(volatile int *)(AFC_SUB);
 }
 
+typedef struct
+{
+    unsigned int reserved1 : 10;
+    unsigned int power_ldo : 8;
+    unsigned int reserved2 : 14;
+} PowerLdoReg_T, *PowerLdoReg_P;
+
+void rtc_set_power_ldo(unsigned int power_ldo)
+{
+    volatile unsigned int *ptr = (volatile unsigned int *)(POWER_LDO);
+    unsigned int reg_value = *ptr;
+    PowerLdoReg_P reg_ptr = (PowerLdoReg_P)(&reg_value);
+
+    reg_ptr->power_ldo = power_ldo;
+
+    *ptr = reg_value;
+}
+
+
 void rtc_calibrate(void)
 {
     init_puf(0);
 
     int data[2] = {0, 0};
     //    int i = 0 ;
+    int left = 0;
+    int right = 255;
+    int mid = (left + right) / 2;
+    int target[2] = {127, 127};
+    int remainder[2] = {0, 2930};   // 2930 is 375000 / 128 = 2929.6875
 
     RC32K_PRINTF("rtc_calib start\r\n");
     RC32K_PRINTF("LDO = %x\r\n", *(volatile int *)(POWER_LDO));
@@ -719,32 +746,77 @@ void rtc_calibrate(void)
         //unsigned char temp = 128;
         //unsigned char base_count;
 
-        RC32K_PRINTF("LDO = %x\r\n", *(volatile int *)(POWER_LDO));
-        for (char i = 6; i > 0; i--)
+        rtc_set_power_ldo(mid);
+        afc_delay(10);
+
+        rt_kprintf("LDO = %x\r\n", *(volatile int *)(POWER_LDO));
+        while (left < right)
         {
             afc_measure(data);
-            if (data[0] > 128)
+            // rt_kprintf("%d %d %d, data %d %d\r\n", left, mid, right, data[0], data[1]);
+
+            if (127 == data[0] && data[1] > remainder[0])
             {
-                *(volatile int *)(POWER_LDO) |= 1 << (10 + i);
-                afc_delay(10);
-                continue;
+                target[0] = mid;
+                remainder[0] = data[1];
             }
-            if (data[0] < 127)
+            if (128 == data[0] && data[1] < remainder[1])
             {
-                *(volatile int *)(POWER_LDO) &= ~(1 << (11 + i));
-                *(volatile int *)(POWER_LDO) |= 1 << (10 + i);
-                afc_delay(10);
-                continue;
+                target[1] = mid;
+                remainder[1] = data[1];
             }
-            if (data[0] == 128 || data[0] == 127)
+
+            if (data[0] >= 128)
             {
-                break;
+                left = mid + 1;
+                mid = (left + right) / 2;
+                rtc_set_power_ldo(mid);
+                afc_delay(10);
+            }
+            else if (data[0] <= 127)
+            {
+                right = mid - 1;
+                mid = (left + right) / 2;
+                rtc_set_power_ldo(mid);
+                afc_delay(10);
             }
         }
-        RC32K_PRINTF("hello world\r\n");
+
+        // measure the target mid, need record this remainder
         afc_measure(data);
-        RC32K_PRINTF("i = %d, data[0] = %d\r\n", i, data[0]);
-        RC32K_PRINTF("i = %d, data[1] = %d\r\n", i, data[1]);
+        // rt_kprintf("%d %d %d, data %d %d\r\n", left, mid, right, data[0], data[1]);
+
+        if (127 == data[0] && data[1] > remainder[0])
+        {
+            target[0] = mid;
+            remainder[0] = data[1];
+        }
+        if (128 == data[0] && data[1] < remainder[1])
+        {
+            target[1] = mid;
+            remainder[1] = data[1];
+        }
+
+        if (remainder[1] < (2930 - remainder[0]))
+        {
+            mid = target[1];
+        }
+        else
+        {
+            mid = target[0];
+        }
+
+        RC32K_PRINTF("hello world\r\n");
+        rtc_set_power_ldo(mid);
+        // afc_delay(10);
+        // afc_measure(data);  // in fact, no need to remeasure
+        // rt_kprintf("%d data %d %d\r\n", mid, data[0], data[1]);
+
+        // *(volatile int *)(POWER_LDO) &= ~(0xFF << 10);
+        // *(volatile int *)(POWER_LDO) |= 1 << 16;
+        // *(volatile int *)(POWER_LDO) |= 0x1F << 10;
+        rt_kprintf("LDO 0x%x\r\n", *(volatile int *)(POWER_LDO));
+
         afc_delay(10000);
     } while (0);
     RC32K_PRINTF("rtc_calib over\r\n");

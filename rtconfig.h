@@ -121,5 +121,7 @@
 #define UC8288_FACTORY
 #define _L1_FACTORY_FUNC_
 #define _CLK_GATING_
+#define WIOTA_ASYNC_GATEWAY_API
+#define WIOTA_ASYNC_GATEWAY_AT
 
 #endif

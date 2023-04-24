@@ -69,6 +69,12 @@ enum at_wiota_log
         return AT_RESULT_REPETITIVE_FAILE; \
     }
 
+#define WIOTA_MUST_RUN(state)             \
+    if (state != AT_WIOTA_RUN)            \
+    {                                      \
+        return AT_RESULT_REPETITIVE_FAILE; \
+    }
+
 #define WIOTA_MUST_ALREADY_INIT(state)                   \
     if (state != AT_WIOTA_INIT && state != AT_WIOTA_RUN) \
     {                                                    \
@@ -281,6 +287,8 @@ static at_result_t at_system_config_setup(const char *args)
     WIOTA_CHECK_AUTOMATIC_MANAGER();
 
     WIOTA_MUST_INIT(wiota_state)
+
+    uc_wiota_get_system_config(&config);
 
     args = parse((char *)(++args), "d,d,d,d,d,d,y,y",
                  &temp[0], &temp[1], &temp[2], &temp[3], &temp[4], &temp[5],
@@ -788,18 +796,18 @@ static at_result_t at_wiota_recv_exec(void)
 */
 static at_result_t at_wiotalpm_setup(const char *args)
 {
-    int mode = 0, value = 0;
+    int mode = 0, value = 0, value2 = 0;
 
     WIOTA_CHECK_AUTOMATIC_MANAGER();
 
-    args = parse((char *)(++args), "d,d", &mode, &value);
+    args = parse((char *)(++args), "d,d,d", &mode, &value, &value2);
 
     switch (mode)
     {
     case AT_WIOTA_SLEEP:
     {
         at_server_printfln("OK");
-        uc_wiota_sleep_enter((unsigned char)value);
+        uc_wiota_sleep_enter((unsigned char)value, (unsigned char)value2);
         break;
     }
     case AT_WIOTA_PAGING_TX:
@@ -809,8 +817,9 @@ static at_result_t at_wiotalpm_setup(const char *args)
     }
     case AT_WIOTA_PAGING_RX:
     {
+        // WIOTA_MUST_RUN(wiota_state)
         at_server_printfln("OK");
-        uc_wiota_paging_rx_enter();
+        uc_wiota_paging_rx_enter((unsigned char)value);
         break;
     }
     case AT_WIOTA_CLOCK:
@@ -1402,14 +1411,14 @@ static at_result_t at_scan_freq_setup(const char *args)
             tempFreq++;
         }
 
-        freqArry = (u8_t *)rt_malloc(freqNum * sizeof(u8_t));
+        freqArry = (u8_t *)rt_malloc(freqNum * sizeof(uc_freq_scan_req_t));
         if (freqArry == NULL)
         {
             rt_free(freqString);
             freqString = NULL;
             return AT_RESULT_NULL;
         }
-        rt_memset(freqArry, 0, freqNum * sizeof(u8_t));
+        rt_memset(freqArry, 0, freqNum * sizeof(uc_freq_scan_req_t));
 
         freqString[strLen - 2] = '\0';
 
@@ -1438,7 +1447,7 @@ static at_result_t at_scan_freq_setup(const char *args)
 
     if (UC_OP_SUCC == result.result)
     {
-        uc_freq_scan_result_p freqlinst = (uc_freq_scan_result_p)result.data;
+        uc_freq_scan_result_p freqlinst = (uc_freq_scan_result_p)(result.data);
         int freq_num = result.data_len / sizeof(uc_freq_scan_result_t);
 
         at_server_printfln("+WIOTASCANFREQ:");
@@ -1501,10 +1510,11 @@ static at_result_t at_paging_rx_config_query(void)
 {
     uc_lpm_rx_cfg_t config;
     uc_wiota_get_paging_rx_cfg(&config);
-    at_server_printfln("+WIOTAPAGINGRX=%d,%d,%d,%d,%d,%d,%d,%d,%d",
+    at_server_printfln("+WIOTAPAGINGRX=%d,%d,%d,%d,%d,%d,%d,%d,%d,%d,%d",
                        config.freq, config.spectrum_idx, config.bandwidth,
-                       config.symbol_length, config.lpm_nlen, config.lpm_utimes,
-                       config.threshold, config.awaken_id, config.detect_period);
+                       config.symbol_length, config.awaken_id, config.detect_period,
+                       config.lpm_nlen, config.lpm_utimes, config.threshold,
+                       config.extra_flag,  config.extra_period);
 
     return AT_RESULT_OK;
 }
@@ -1512,12 +1522,12 @@ static at_result_t at_paging_rx_config_query(void)
 static at_result_t at_paging_rx_config_setup(const char *args)
 {
     uc_lpm_rx_cfg_t config = {0};
-    unsigned int temp[9];
+    unsigned int temp[11];
 
     WIOTA_MUST_ALREADY_INIT(wiota_state)
 
-    args = parse((char *)(++args), "d,d,d,d,d,d,d,d,d",
-                 &temp[0], &temp[1], &temp[2], &temp[3], &temp[4], &temp[5], &temp[6], &temp[7], &temp[8]);
+    args = parse((char *)(++args), "d,d,d,d,d,d,d,d,d,d,d",
+                 &temp[0], &temp[1], &temp[2], &temp[3], &temp[4], &temp[5], &temp[6], &temp[7], &temp[8], &temp[9], &temp[10]);
 
     if (!args)
     {
@@ -1528,11 +1538,13 @@ static at_result_t at_paging_rx_config_setup(const char *args)
     config.spectrum_idx = (unsigned char)temp[1];
     config.bandwidth = (unsigned char)temp[2];
     config.symbol_length = (unsigned char)temp[3];
-    config.lpm_nlen = (unsigned char)temp[4];
-    config.lpm_utimes = (unsigned char)temp[5];
-    config.threshold = (unsigned short)temp[6];
-    config.awaken_id = (unsigned short)temp[7];
-    config.detect_period = (unsigned int)temp[8];
+    config.awaken_id = (unsigned short)temp[4];
+    config.detect_period = (unsigned int)temp[5];
+    config.lpm_nlen = (unsigned char)temp[6];
+    config.lpm_utimes = (unsigned char)temp[7];
+    config.threshold = (unsigned short)temp[8];
+    config.extra_flag = (unsigned short)temp[9];
+    config.extra_period = (unsigned int)temp[10];
 
     uc_wiota_set_paging_rx_cfg(&config);
 
@@ -1541,7 +1553,7 @@ static at_result_t at_paging_rx_config_setup(const char *args)
 
 AT_CMD_EXPORT("AT+WIOTAVERSION", RT_NULL, RT_NULL, at_wiota_version_query, RT_NULL, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAINIT", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_init_exec);
-AT_CMD_EXPORT("AT+WIOTALPM", "=<mode>,<value>", RT_NULL, RT_NULL, at_wiotalpm_setup, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTALPM", "=<mode>,<value>,<value2>", RT_NULL, RT_NULL, at_wiotalpm_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTARATE", "=<rate_mode>,<rate_value>", RT_NULL, RT_NULL, at_wiotarate_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAPOW", "=<mode>,<power>", RT_NULL, RT_NULL, at_wiotapow_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAFREQ", "=<freqpint>", RT_NULL, at_freq_query, at_freq_setup, RT_NULL);
@@ -1577,7 +1589,7 @@ AT_CMD_EXPORT("AT+WIOTAUNIFAIL", "=<cnt>", RT_NULL, RT_NULL, at_wiotaunifailcnt_
 AT_CMD_EXPORT("AT+WIOTASCANFREQ", "=<timeout>,<round>,<dataLen>,<freqnum>", RT_NULL, RT_NULL, at_scan_freq_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAPAGINGTX", "=<freq>,<spec_idx>,<band>,<symbol>,<awaken_id>,<send_time>",
               RT_NULL, at_paging_tx_config_query, at_paging_tx_config_setup, RT_NULL);
-AT_CMD_EXPORT("AT+WIOTAPAGINGRX", "=<freq>,<spec_idx>,<band>,<symbol>,<nlen>,<utimes>,<thres>,<awaken_id>,<detect_period>",
+AT_CMD_EXPORT("AT+WIOTAPAGINGRX", "=<freq>,<spec_idx>,<band>,<symbol>,<awaken_id>,<detect_period>,<nlen>,<utimes>,<thres>,<extra_flag>,<extra_period>",
               RT_NULL, at_paging_rx_config_query, at_paging_rx_config_setup, RT_NULL);
 
 #endif

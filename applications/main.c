@@ -71,6 +71,7 @@ extern void uc_wiota_static_data_init(void);
 extern void at_handle_log_uart(int uart_number);
 #endif
 // extern void at_wiota_manager(void);
+
 //void task_callback(struct rt_thread* from, struct rt_thread* to)
 //{
 //    rt_kprintf("name = %s, 0x%x\n", from->name, from);

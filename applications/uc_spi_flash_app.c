@@ -2,7 +2,6 @@
 #ifdef _SPI_FLASH_APP_
 #include <rtdevice.h>
 #include "uc_spi_flash_app.h"
-#include "drv_onchip_flash.h"
 
 
 #define FLASH_DATA_ADDR         0x1a0000
