@@ -1,3 +1,21 @@
+
+async v2.8
+A-v2.8
+
+1. 更新app驱动demo
+2. 修复paging tx和数据发送bug
+3. 按子帧发送api更新
+4. at波特率设置并保存进静态数据
+5. spi cs唤醒bug修复（uc_boot_strap.c更新！）
+6. 唤醒原因接口
+7. 外部32K晶振设置api
+8. license功能更新，暂未启用
+9. 指定帧头发送数据功能，上报接收时刻子帧边界
+10. 语音数据加速功能
+11. 获取rf状态api更新
+12. 获取当前时刻rf counter
+
+
 async v2.7
 A-v2.7
 

@@ -117,6 +117,19 @@ void app_device_demo(void)
 #ifdef _SPI_FLASH_APP_
     spi_flash_app_sample();
 #endif
+
+#ifdef _SPIM_FLASH_APP_
+    spim_flash_app_sample();
+#endif
+
+#ifdef _RS485_APP_
+    rs485_app_sample();
+#endif
+
+#ifdef _UART_APP_
+    uart_app_sample();
+#endif
+
 }
 
 int main(void)

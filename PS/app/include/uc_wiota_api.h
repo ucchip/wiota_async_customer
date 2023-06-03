@@ -47,12 +47,15 @@ typedef enum
     UC_CALLBACK_STATE_INFO,      // state info
 } UC_CALLBACK_DATA_TYPE;
 
+
 typedef enum
 {
     UC_RECV_MSG = 0,   // normal msg
     UC_RECV_BC,        // broadcast msg
     UC_RECV_SCAN_FREQ, // result of freq scan by riscv
     UC_RECV_PHY_RESET, // if phy reseted once, tell app
+    UC_RECV_SYNC_STATE,// when subf recv mode, if sync succ, report UC_OP_SUCC, if track fail, report UC_OP_FAIL
+    UC_RECV_ACC_DATA,  // acc voice data
     UC_RECV_MAX_TYPE,
 } UC_RECV_DATA_TYPE;
 
@@ -164,6 +167,24 @@ typedef enum
     ADJUST_MODE_RECV = 1,
 } UC_ADJUST_MODE;
 
+typedef enum
+{
+    AWAKENED_CAUSE_HARD_RESET = 0,      // also watchdog reset, spi cs reset
+    AWAKENED_CAUSE_SLEEP = 1,
+    AWAKENED_CAUSE_PAGING = 2,
+    AWAKENED_CAUSE_GATING = 3,          // no need care
+    AWAKENED_CAUSE_FORCED_INTERNAL = 4, // not use
+    AWAKENED_CAUSE_OTHERS,
+} UC_AWAKENED_CAUSE;
+
+typedef enum
+{
+    RF_STATUS_IDLE = 0,
+    RF_STATUS_TX,
+    RF_STATUS_RX,
+    INVALD_RF_STATUS
+} UC_RF_STATUS_E;
+
 typedef struct
 {
     unsigned char rssi; // absolute value, 0~150, always negative
@@ -218,6 +239,7 @@ typedef struct
     unsigned short packet_size;                 // indicate packet size
     unsigned char *data;                        // if result is UC_OP_SUCC or UC_OP_PART_SUCC, data is not null, need free
     unsigned char fail_idx[PARTIAL_FAIL_NUM];   // packet number 1 ~ 255, if 0, means no packet fail, like 1,2,0,0... means only packet 1 and 2 is fail.
+    unsigned int cur_rf_cnt;                    // algined by subframe struct
 } uc_recv_back_t, *uc_recv_back_p;
 
 typedef struct
@@ -290,7 +312,8 @@ typedef struct
 typedef struct
 {
     unsigned short data_len;
-    unsigned short reserved;
+    unsigned char is_right; // for recv data
+    unsigned char reserved;
     unsigned char *data;
 } uc_subf_data_t, *uc_subf_data_p;
 
@@ -375,6 +398,11 @@ void uc_wiota_set_continue_send(unsigned char c_send_flag);
 
 void uc_wiota_set_subframe_send(unsigned char s_send_flag);
 
+void uc_wiota_set_subframe_recv(u8_t s_recv_flag);
+
+void uc_wiota_set_subframe_head(u8_t head_data);
+
+
 void uc_wiota_set_incomplete_recv(unsigned char recv_flag);
 
 void uc_wiota_set_tx_mode(unsigned char mode);
@@ -403,7 +431,7 @@ void uc_wiota_paging_tx_start(void);
 
 void uc_wiota_set_paging_tx_cfg(uc_lpm_tx_cfg_t *config);
 
-void uc_wiota_set_paging_rx_cfg(uc_lpm_rx_cfg_t *config);
+boolean uc_wiota_set_paging_rx_cfg(uc_lpm_rx_cfg_t *config);
 
 void uc_wiota_get_paging_tx_cfg(uc_lpm_tx_cfg_t *config);
 
@@ -417,9 +445,20 @@ void uc_wiota_get_subframe_data(uc_subf_data_p subf_data);
 
 unsigned int uc_wiota_get_subframe_data_num(unsigned char is_recv);
 
-void uc_wiota_set_subframe_data_limit(u32_t num_limit);
+void uc_wiota_set_subframe_data_limit(unsigned int num_limit);
 
-boolean uc_wiota_is_pyhsical_idle(void);
+unsigned char uc_wiota_get_pyhsical_status(void); // UC_RF_STATUS_E
+
+boolean uc_wiota_voice_data_acc(unsigned char is_first, unsigned int *data, u16_t data_len);
+
+void uc_wiota_set_outer_32K(boolean is_open);
+
+unsigned char uc_wiota_get_awakened_cause(unsigned char *is_cs_awakened); // UC_AWAKENED_CAUSE
+
+unsigned int uc_wiota_get_curr_rf_cnt(void);
+
+UC_OP_RESULT uc_wiota_send_data_with_start_time(u32_t userId, u8_t *data, u16_t len, u8_t *bcHead, u8_t headLen, u32_t timeout, uc_send callback, u32_t start_time);
+
 
 // below is about uboot
 void get_uboot_version(unsigned char *version);

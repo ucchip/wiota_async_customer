@@ -1189,6 +1189,22 @@ static at_result_t at_wiota_continue_send_setup(const char *args)
     return AT_RESULT_OK;
 }
 
+static at_result_t at_wiota_subframe_send_setup(const char *args)
+{
+    int flag = 0;
+
+    args = parse((char *)(++args), "d", &flag);
+
+    if (!args || flag < 0)
+    {
+        return AT_RESULT_PARSE_FAILE;
+    }
+
+    uc_wiota_set_subframe_send((unsigned char)flag);
+
+    return AT_RESULT_OK;
+}
+
 static at_result_t at_wiota_incomplete_recv_setup(const char *args)
 {
     int flag = -1;
@@ -1523,6 +1539,7 @@ static at_result_t at_paging_rx_config_setup(const char *args)
 {
     uc_lpm_rx_cfg_t config = {0};
     unsigned int temp[11];
+    unsigned char set_ok = FALSE;
 
     WIOTA_MUST_ALREADY_INIT(wiota_state)
 
@@ -1546,9 +1563,16 @@ static at_result_t at_paging_rx_config_setup(const char *args)
     config.extra_flag = (unsigned short)temp[9];
     config.extra_period = (unsigned int)temp[10];
 
-    uc_wiota_set_paging_rx_cfg(&config);
+    set_ok = uc_wiota_set_paging_rx_cfg(&config);
 
-    return AT_RESULT_OK;
+    if (set_ok)
+    {
+        return AT_RESULT_OK;
+    }
+    else
+    {
+        return AT_RESULT_PARSE_FAILE;
+    }
 }
 
 AT_CMD_EXPORT("AT+WIOTAVERSION", RT_NULL, RT_NULL, at_wiota_version_query, RT_NULL, RT_NULL);
@@ -1579,6 +1603,7 @@ AT_CMD_EXPORT("AT+WIOTABCROUND", "=<round>", RT_NULL, RT_NULL, at_wiota_bc_round
 AT_CMD_EXPORT("AT+WIOTADETECTIME", "=<time>", RT_NULL, RT_NULL, at_wiota_detect_time_setup, RT_NULL);
 // AT_CMD_EXPORT("AT+WIOTABAND", "=<band>", RT_NULL, RT_NULL, at_wiota_bandwidth_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTACONTINUESEND", "=<flag>", RT_NULL, RT_NULL, at_wiota_continue_send_setup, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTASUBFRAMESEND", "=<flag>", RT_NULL, RT_NULL, at_wiota_subframe_send_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAINCRECV", "=<flag>", RT_NULL, RT_NULL, at_wiota_incomplete_recv_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTATXMODE", "=<mode>", RT_NULL, RT_NULL, at_wiotatxmode_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTARECVMODE", "=<mode>", RT_NULL, RT_NULL, at_wiotarecvmode_setup, RT_NULL);
