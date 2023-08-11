@@ -145,6 +145,9 @@ void uc_uart_init(UART_TYPE *uartx, uint32_t baud_rate, uint8_t data_bits, uint8
         line_reg |= 1 << 3;
     }
 
+    uartx->FCR = 0x0;
+    uartx->FCR |= 0x6; // clear FIFO add by jrhe 23.08.09 17:23
+
     uartx->LCR = line_reg | 0x80; //sets 8N1 and set DLAB to 1
     uartx->DLM = (integerdivider >> 8) & 0xFF;
     uartx->DLL = integerdivider & 0xFF;
@@ -225,5 +228,12 @@ void uc_uart_enable_intrx(UART_TYPE *uartx, uint8_t ctrl)
     }
 #endif
 }
+
+void uc_uartx_wait_tx_done(UART_TYPE *uartx)
+{
+    while ((uartx->LSR & 0x40) == 0);
+}
+
+
 /*=============================================== end ==========================================*/
 #endif

@@ -13,11 +13,6 @@ src = Glob('app/test/*.c')
 src += Glob('app/src/*.c')
 src += Glob('at/*.c')
 
-if GetDepend(['WIOTA_ASYNC_GATEWAY_API']):
-    path += [cwd + '/app/coding']
-    path += [cwd + '/app/fastlz']
-    src += Glob('app/coding/*.c')
-    src += Glob('app/fastlz/*.c')
 
 lib = ['libwin_wiota_dev']
 libpath = [cwd + '/lib']

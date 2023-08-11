@@ -155,8 +155,8 @@ static void test_async_relay_task(void *pPara)
     sub_system_config_t wiota_config = {0};
     async_test_data data;
     int id_len;
-    unsigned char freq_list[16] = {255};
-    unsigned char freq = TEST_ASYNC_FREQ_SINGLE;
+    unsigned short freq_list[16] = {0xFFFF};
+    unsigned short freq = TEST_ASYNC_FREQ_SINGLE;
 
     rt_pin_mode(led_pin, PIN_MODE_OUTPUT);
     rt_pin_write(led_pin, led_value);
@@ -172,14 +172,14 @@ static void test_async_relay_task(void *pPara)
     uc_wiota_get_system_config(&wiota_config);
     //rt_kprintf("config show %d %d %d %d 0x%x 0x%x\n",
     //           wiota_config.id_len, wiota_config.pp, wiota_config.symbol_length,
-    //           wiota_config.btvalue, wiota_config.systemid, wiota_config.subsystemid);
+    //           wiota_config.btvalue, wiota_config.freq_idx, wiota_config.subsystemid);
 
     wiota_config.symbol_length = 3; // 3->1024
     wiota_config.bandwidth = 4; // 4->25k
     uc_wiota_set_system_config(&wiota_config);
 
     uc_wiota_get_freq_list(freq_list);
-    if (freq_list[0] != 255 && 0 != freq_list[0])
+    if (freq_list[0] != 0xFFFF && 0 != freq_list[0])
         freq = freq_list[0];
 
     rt_kprintf("====> current freq %d\n", freq);

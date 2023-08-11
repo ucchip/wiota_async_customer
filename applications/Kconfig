@@ -66,9 +66,11 @@ if RT_USING_SPI
         default n
 endif
 
-config _RS485_APP_
-    bool "open rs485, default close(_RS485_APP_)"
-    default n
+if RT_USING_SERIAL
+    config _RS485_APP_
+        bool "open rs485, default close(_RS485_APP_)"
+        default n
+endif
 
 config _UART_APP_
     bool "open uart, default close(_UART_APP_)"

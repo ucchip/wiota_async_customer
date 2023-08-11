@@ -158,14 +158,14 @@ void uc_wiota_get_dtu_config(dtu_info_t *cfg);
  *         !0: otherwise
  * @note   the maximum mumber of frequency point is 16.
  */
-int uc_wiota_set_freq_list(unsigned char *freq_list, unsigned char num);
+int uc_wiota_set_freq_list(unsigned short *freq_list, unsigned char num);
 
 /**
  * @brief  get frequency point list
  *
  * @param  freq_list the frequency point list
  */
-void uc_wiota_get_freq_list(unsigned char *freq_list);
+void uc_wiota_get_freq_list(unsigned short *freq_list);
 
 /**
  * @brief  get the first address of user defined data

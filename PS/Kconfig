@@ -24,13 +24,5 @@ config _CLK_GATING_
     bool "clk gating, default open(_CLK_GATING_)"
     default y
 
-config WIOTA_ASYNC_GATEWAY_API
-    bool "single async gateway mode api, default open(WIOTA_ASYNC_GATEWAY_API)"
-    default y
-
-if WIOTA_ASYNC_GATEWAY_API
-    config WIOTA_ASYNC_GATEWAY_AT
-        bool "single async gateway at cmd, default open(WIOTA_ASYNC_GATEWAY_AT)"
-        default y
 endif
 endmenu

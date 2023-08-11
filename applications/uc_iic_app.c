@@ -2,6 +2,7 @@
 #ifdef _IIC_APP_
 #include <rtdevice.h>
 #include "uc_iic_app.h"
+#include "drivers/i2c.h"
 
 #define IIC_DEVICE_NAME    "hw_i2c"
 #define AT24C02_ADDR 0xA0
@@ -77,30 +78,30 @@ void iic_app_sample(void)
     rt_err_t ret = RT_EOK;
     unsigned char set_data[4] = {1, 2, 3, 4};
     unsigned char get_data[4] = {0};
-    
+
     rt_kprintf("iic test demo.\r\n");
-    
+
     ret = iic_app_init();
     if(ret != RT_EOK)
     {
         rt_kprintf("init iic failed!\n");
         return;
     }
-    
+
     ret = write_reg((struct rt_i2c_bus_device *)iic_dev, 0, set_data);
     if(ret != RT_EOK)
     {
         rt_kprintf("iic write data failed!\n");
         return;
     }
-    
+
     ret = read_regs((struct rt_i2c_bus_device *)iic_dev, 4, get_data);
     if(ret != RT_EOK)
     {
         rt_kprintf("iic write data failed!\n");
         return;
     }
-    
+
     for (rt_uint8_t num = 0; num < 4; num++)
     {
         if (set_data[num] != get_data[num])

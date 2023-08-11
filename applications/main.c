@@ -61,6 +61,14 @@
 #include "uc_spi_flash_app.h"
 #endif
 
+#ifdef _SPIM_FLASH_APP_
+#include "uc_spim_flash_app.h"
+#endif
+
+#ifdef _RS485_APP_
+#include "uc_rs485_app.h"
+#endif
+
 #ifdef _ROMFUNC_
 #include "dll.h"
 #endif
