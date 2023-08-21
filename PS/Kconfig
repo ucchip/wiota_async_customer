@@ -24,5 +24,4 @@ config _CLK_GATING_
     bool "clk gating, default open(_CLK_GATING_)"
     default y
 
-endif
 endmenu
