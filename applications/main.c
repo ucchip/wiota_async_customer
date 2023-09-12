@@ -8,6 +8,7 @@
  * 2020-11-26     RT-Thread    first version
  */
 #include <rtthread.h>
+#include "resource_manager.h"
 #ifdef _RT_THREAD_
 #include <rtdevice.h>
 #endif
@@ -147,6 +148,9 @@ int main(void)
 #endif
 
     uc_wiota_static_data_init();
+
+    resource_manager_init();
+
 
 #ifdef _WATCHDOG_APP_
     if (!watchdog_app_init())

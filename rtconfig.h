@@ -15,6 +15,7 @@
 #define RT_USING_HOOK
 #define RT_USING_IDLE_HOOK
 #define RT_IDLE_HOOK_LIST_SIZE 3
+#define RT_TASK_RESOURCE_TOOL
 #define IDLE_THREAD_STACK_SIZE 512
 
 /* kservice optimization */
@@ -121,6 +122,5 @@
 #define UC8288_FACTORY
 #define _L1_FACTORY_FUNC_
 #define _CLK_GATING_
-
 
 #endif

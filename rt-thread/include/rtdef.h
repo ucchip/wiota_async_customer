@@ -668,6 +668,13 @@ struct rt_thread
 #endif
 
     rt_ubase_t user_data;                             /**< private user data beyond this thread */
+
+#ifdef RT_TASK_RESOURCE_TOOL
+    unsigned int task_run_all_time;
+    unsigned int task_current_start_time;
+#endif
+
+
 };
 typedef struct rt_thread* rt_thread_t;
 

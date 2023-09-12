@@ -51,12 +51,12 @@ typedef enum
 
 typedef enum
 {
-    UC_RECV_MSG = 0,   // normal msg
-    UC_RECV_BC,        // broadcast msg
-    UC_RECV_SCAN_FREQ, // result of freq scan by riscv
-    UC_RECV_PHY_RESET, // if phy reseted once, tell app
-    UC_RECV_SYNC_STATE,// when subf recv mode, if sync succ, report UC_OP_SUCC, if track fail, report UC_OP_FAIL
-    UC_RECV_ACC_DATA,  // acc voice data
+    UC_RECV_MSG = 0,   // UC_CALLBACK_NORAMAL_MSG, normal msg
+    UC_RECV_BC,        // UC_CALLBACK_NORAMAL_MSG, broadcast msg
+    UC_RECV_SCAN_FREQ, // UC_CALLBACK_NORAMAL_MSG, result of freq scan by riscv
+    UC_RECV_PHY_RESET, // UC_CALLBACK_STATE_INFO, if phy reseted once, tell app
+    UC_RECV_SYNC_STATE,// UC_CALLBACK_STATE_INFO, when subf recv mode, if sync succ, report UC_OP_SUCC, if track fail, report UC_OP_FAIL
+    UC_RECV_ACC_DATA,  // UC_CALLBACK_NORAMAL_MSG, acc voice data
     UC_RECV_MAX_TYPE,
 } UC_RECV_DATA_TYPE;
 
@@ -349,9 +349,15 @@ UC_WIOTA_STATUS uc_wiota_get_state(void);
 
 void uc_wiota_set_dcxo(unsigned int dcxo);
 
+u32_t uc_wiota_get_dcxo(void);
+
 void uc_wiota_set_freq_info(unsigned short freq_idx);
 
 unsigned short uc_wiota_get_freq_info(void);
+
+void uc_wiota_set_subsystem_id(u32_t subsystemid);
+
+u32_t uc_wiota_get_subsystem_id(void);
 
 void uc_wiota_set_system_config(sub_system_config_t *config);
 
@@ -423,11 +429,15 @@ void uc_wiota_set_incomplete_recv(unsigned char recv_flag);
 
 void uc_wiota_set_tx_mode(unsigned char mode);
 
+u8_t uc_wiota_get_tx_mode(void);
+
 void uc_wiota_set_freq_div(unsigned char div_mode);
 
 void uc_wiota_set_vol_mode(unsigned char vol_mode);
 
 void uc_wiota_set_alarm_time(unsigned int sec);
+
+void uc_wiota_set_is_ex_wk(boolean is_need_ex_wk);
 
 void uc_wiota_sleep_enter(unsigned char is_need_ex_wk, unsigned char is_need_32k_div);
 

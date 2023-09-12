@@ -92,6 +92,11 @@ config RT_USING_IDLE_HOOK
         range 1 16
         help
             The system has a hook list. This is the hook list size.
+
+    config RT_TASK_RESOURCE_TOOL
+        bool "susport task resrouce statistics"
+        default y
+
     endif
 
 config IDLE_THREAD_STACK_SIZE
