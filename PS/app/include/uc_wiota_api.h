@@ -481,7 +481,7 @@ void uc_wiota_set_outer_32K(boolean is_open);
 
 unsigned char uc_wiota_get_awakened_cause(unsigned char *is_cs_awakened); // UC_AWAKENED_CAUSE
 
-unsigned char uc_wiota_get_paging_awaken_cause(void); // UC_LPM_PAGING_WAKEN_CAUSE_E
+unsigned char uc_wiota_get_paging_awaken_cause(u32_t *detected_times); // UC_LPM_PAGING_WAKEN_CAUSE_E
 
 unsigned int uc_wiota_get_curr_rf_cnt(void);
 
@@ -490,6 +490,16 @@ UC_OP_RESULT uc_wiota_send_data_with_start_time(u32_t userId, u8_t *data, u16_t 
 void uc_wiota_set_symbol_mode(u8_t symbol_mode);
 
 void uc_wiota_set_rf_ctrl_type(u8_t rf_ctrl_type);
+
+void uc_wiota_set_auto_ack_pow(boolean is_open);
+
+boolean uc_wiota_get_auto_ack_pow(void);
+
+boolean uc_wiota_suspend(void);
+
+boolean uc_wiota_recover(void);
+
+
 
 // below is about uboot
 void get_uboot_version(unsigned char *version);

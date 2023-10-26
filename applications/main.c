@@ -8,7 +8,6 @@
  * 2020-11-26     RT-Thread    first version
  */
 #include <rtthread.h>
-#include "resource_manager.h"
 #ifdef _RT_THREAD_
 #include <rtdevice.h>
 #endif
@@ -72,6 +71,10 @@
 
 #ifdef _ROMFUNC_
 #include "dll.h"
+#endif
+
+#ifdef  RT_TASK_RESOURCE_TOOL
+#include "resource_manager.h"
 #endif
 
 extern void uc_wiota_static_data_init(void);
@@ -149,8 +152,9 @@ int main(void)
 
     uc_wiota_static_data_init();
 
+#ifdef RT_TASK_RESOURCE_TOOL
     resource_manager_init();
-
+#endif
 
 #ifdef _WATCHDOG_APP_
     if (!watchdog_app_init())
@@ -166,7 +170,14 @@ int main(void)
 #ifdef WIOTA_API_TEST
     app_task_init();
 #endif
+#endif
 
+#ifdef WIOTA_RELAY_APP
+extern int uc_wiota_relay_app_init(void);
+    if (0 == uc_wiota_relay_app_init())
+    {
+        rt_kprintf("uc_wiota_relay_app_init suc\n");
+    }
 #endif
 
 #if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
@@ -190,6 +201,9 @@ int main(void)
         unsigned int max_used;
 
         rt_thread_delay(10000);
+
+        // resource_manager(RESOURCE_DETAIL_MODE);
+        // resource_manager(RESOURCE_SIMPLE_MODE);
 
         rt_memory_info(&total, &used, &max_used);
         rt_kprintf("total %d used %d maxused %d\n", total, used, max_used);

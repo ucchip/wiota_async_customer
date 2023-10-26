@@ -164,6 +164,7 @@ void internal_temp_measure(ADDA_TypeDef *ADDA)
    //ADDA->ADC_CTRL0 = 0x80FF8E42;
     ADDA->ADC_CTRL0 = 0x80FF8E5A;
     ADDA->ADC_CTRL1 = 0xA0060000;
+    REG(0x1A10A02C) = (REG(0x1A10A02C) & (~(0x0F << 12))) | (0xC << 12);
 }
 
 void dc_off_control(int control)

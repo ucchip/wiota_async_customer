@@ -930,6 +930,10 @@ static at_result_t at_wiotapow_setup(const char *args)
     {
         uc_wiota_set_max_power((signed char)(power - 20));
     }
+    else if (mode == 2)
+    {
+        uc_wiota_set_auto_ack_pow((unsigned char)power);
+    }
 
     return AT_RESULT_OK;
 }
@@ -1670,6 +1674,29 @@ static at_result_t at_memory_query(void)
     return AT_RESULT_OK;
 }
 
+static at_result_t at_wiota_control_mode_setup(const char *args)
+{
+    int ctl_mode = 0;
+
+    args = parse((char *)(++args), "d", &ctl_mode);
+
+    if (!args)
+    {
+        return AT_RESULT_PARSE_FAILE;
+    }
+
+    if (0 == ctl_mode)
+    {
+        uc_wiota_suspend();
+    }
+    else if (1 == ctl_mode)
+    {
+        uc_wiota_recover();
+    }
+
+    return AT_RESULT_OK;
+}
+
 AT_CMD_EXPORT("AT+WIOTAVERSION", RT_NULL, RT_NULL, at_wiota_version_query, RT_NULL, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTAINIT", RT_NULL, RT_NULL, RT_NULL, RT_NULL, at_wiota_init_exec);
 AT_CMD_EXPORT("AT+WIOTALPM", "=<mode>,<value>,<value2>", RT_NULL, RT_NULL, at_wiotalpm_setup, RT_NULL);
@@ -1714,6 +1741,7 @@ AT_CMD_EXPORT("AT+WIOTAPAGINGRX", "=<freq>,<spec_idx>,<band>,<symbol>,<awaken_id
               RT_NULL, at_paging_rx_config_query, at_paging_rx_config_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTASYMBMODE", "=<symbol_mode>", RT_NULL, RT_NULL, at_wiota_symbol_mode_setup, RT_NULL);
 AT_CMD_EXPORT("AT+WIOTACKMEM", "=<total>,<used>,<maxused>", RT_NULL, at_memory_query, RT_NULL, RT_NULL);
+AT_CMD_EXPORT("AT+WIOTACTL", "=<mode>", RT_NULL, RT_NULL, at_wiota_control_mode_setup, RT_NULL);
 
 #endif
 #endif

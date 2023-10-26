@@ -689,7 +689,7 @@ static void afc_measure(int *data)
     // enable afc
     *(volatile int *)(AFC_RESET) |= 0x1 << 3;
     // set afc cont
-    *(volatile int *)(AFC_HCY) = 375000;  //  96M / 128 / 32.768K
+    *(volatile int *)(AFC_HCY) = 375000;  //  96M * 128 / 32.768K
     // select 128 cycle
     *(volatile int *)(AFC_SEC) = 0x0;
     // reset afc
