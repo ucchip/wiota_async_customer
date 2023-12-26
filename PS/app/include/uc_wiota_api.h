@@ -2,19 +2,6 @@
 #ifndef _UC_WIOTA_API_H__
 #define _UC_WIOTA_API_H__
 
-typedef unsigned long long u64_t;
-typedef signed long long s64_t;
-typedef unsigned long ul32_t;
-typedef signed long sl32_t;
-typedef signed int s32_t;
-typedef unsigned int u32_t;
-typedef signed short s16_t;
-typedef unsigned short u16_t;
-typedef char n8_t;
-typedef signed char s8_t;
-typedef unsigned char u8_t;
-typedef unsigned char boolean;
-
 #ifndef FALSE
 #define FALSE 0
 #endif
@@ -43,22 +30,26 @@ typedef unsigned char boolean;
 
 #define UC_DATA_LENGTH_LIMIT 310
 
+#define UC_MAX_SUBFRAME_NUM 10
+
+#define UC_MIN_SUBFRAME_NUM 3
+
 typedef enum
 {
     UC_CALLBACK_NORAMAL_MSG = 0, // normal msg from ap
     UC_CALLBACK_STATE_INFO,      // state info
-} UC_CALLBACK_DATA_TYPE;
+} uc_callback_data_type_e;
 
 typedef enum
 {
-    UC_RECV_MSG = 0,   // UC_CALLBACK_NORAMAL_MSG, normal msg
-    UC_RECV_BC,        // UC_CALLBACK_NORAMAL_MSG, broadcast msg
-    UC_RECV_SCAN_FREQ, // UC_CALLBACK_NORAMAL_MSG, result of freq scan by riscv
-    UC_RECV_PHY_RESET, // UC_CALLBACK_STATE_INFO, if phy reseted once, tell app
-    UC_RECV_SYNC_STATE,// UC_CALLBACK_STATE_INFO, when subf recv mode, if sync succ, report UC_OP_SUCC, if track fail, report UC_OP_FAIL
-    UC_RECV_ACC_DATA,  // UC_CALLBACK_NORAMAL_MSG, acc voice data
+    UC_RECV_MSG = 0,    // UC_CALLBACK_NORAMAL_MSG, normal msg
+    UC_RECV_BC,         // UC_CALLBACK_NORAMAL_MSG, broadcast msg
+    UC_RECV_SCAN_FREQ,  // UC_CALLBACK_NORAMAL_MSG, result of freq scan by riscv
+    UC_RECV_PHY_RESET,  // UC_CALLBACK_STATE_INFO, if phy reseted once, tell app
+    UC_RECV_SYNC_STATE, // UC_CALLBACK_STATE_INFO, when subf recv mode, if sync succ, report UC_OP_SUCC, if track fail, report UC_OP_FAIL
+    UC_RECV_ACC_DATA,   // UC_CALLBACK_NORAMAL_MSG, acc voice data
     UC_RECV_MAX_TYPE,
-} UC_RECV_DATA_TYPE;
+} uc_recv_data_type_e;
 
 typedef enum
 {
@@ -68,7 +59,7 @@ typedef enum
     UC_STATUS_SENDING,
     UC_STATUS_SLEEP,
     UC_STATUS_ERROR,
-} UC_WIOTA_STATUS;
+} uc_wiota_status_e;
 
 typedef enum
 {
@@ -78,7 +69,7 @@ typedef enum
     UC_OP_PART_SUCC,
     UC_OP_CRC_FAIL,
     UC_OP_QUEUE_FULL,
-} UC_OP_RESULT;
+} uc_op_result_e;
 
 typedef enum
 {
@@ -91,25 +82,26 @@ typedef enum
     UC_MCS_LEVEL_6,
     UC_MCS_LEVEL_7,
     UC_MCS_AUTO = 8,
-} UC_MCS_LEVEL;
+} uc_mcs_level_e;
 
 typedef enum
 {
     UC_RATE_NORMAL = 0,
+    UC_RATE_MID = 1,
     UC_RATE_OTHER,
-} UC_DATA_RATE_MODE;
+} uc_data_rate_mode_e;
 
 typedef enum
 {
     UC_LOG_UART = 0,
     UC_LOG_SPI,
-} UC_LOG_TYPE;
+} uc_log_type_e;
 
 typedef enum
 {
     UC_STATS_READ = 0,
     UC_STATS_WRITE,
-} UC_STATS_MODE;
+} uc_stats_mode_e;
 
 typedef enum
 {
@@ -123,15 +115,16 @@ typedef enum
     UC_STATS_BC_RECV_FAIL,
     UC_STATS_BC_RECV_SUCC,
     UC_STATS_TYPE_MAX,
-} UC_STATS_TYPE;
+} uc_stats_type_e;
 
 typedef enum
 {
     MODULE_STATE_NULL = 0,
     MODULE_STATE_INIT,
     MODULE_STATE_RUN,
+    MODULE_STATE_SWITCHING,
     MODULE_STATE_INVALID
-} UC_TASK_STATE;
+} uc_task_state_e;
 
 typedef enum
 {
@@ -146,37 +139,37 @@ typedef enum
     FREQ_DIV_MODE_16 = 8, // 6M
     FREQ_DIV_MODE_32 = 9, // 3M
     FREQ_DIV_MODE_MAX,
-} UC_FREQ_DIV_MODE_E;
+} uc_freq_div_mode_e;
 
 typedef enum
 {
     VOL_MODE_CLOSE = 0, // 1.82v
     VOL_MODE_OPEN = 1,  // 1.47v
     VOL_MODE_TEMP_MAX,
-} UC_VOL_MODE_E;
+} uc_vol_mode_e;
 
 typedef enum
 {
     UC_AUTO_RECV_START = 0, // default
     UC_AUTO_RECV_STOP = 1,
     UC_AUTO_RECV_ERROR,
-} UC_AUTO_RECV_MODE;
+} uc_auto_recv_mode_e;
 
 typedef enum
 {
     ADJUST_MODE_SEND = 0,
     ADJUST_MODE_RECV = 1,
-} UC_ADJUST_MODE;
+} uc_adjust_mode_e;
 
 typedef enum
 {
-    AWAKENED_CAUSE_HARD_RESET = 0,      // also watchdog reset, spi cs reset
+    AWAKENED_CAUSE_HARD_RESET = 0, // also watchdog reset, spi cs reset
     AWAKENED_CAUSE_SLEEP = 1,
-    AWAKENED_CAUSE_PAGING = 2,          // then get UC_LPM_PAGING_WAKEN_CAUSE_E
+    AWAKENED_CAUSE_PAGING = 2,          // then get uc_lpm_paging_waken_cause_e
     AWAKENED_CAUSE_GATING = 3,          // no need care
     AWAKENED_CAUSE_FORCED_INTERNAL = 4, // not use
     AWAKENED_CAUSE_OTHERS,
-} UC_AWAKENED_CAUSE;
+} uc_awakened_cause_e;
 
 typedef enum
 {
@@ -187,7 +180,7 @@ typedef enum
     PAGING_WAKEN_CAUSE_SYNC_PG_SIGNAL = 4,  // from sync paging signal, not use in async
     PAGING_WAKEN_CAUSE_SYNC_PG_TIMING = 5,  // from sync paging timing set, not use in async
     PAGING_WAKEN_CAUSE_MAX,
-} UC_LPM_PAGING_WAKEN_CAUSE_E;
+} uc_lpm_paging_waken_cause_e;
 
 typedef enum
 {
@@ -195,7 +188,15 @@ typedef enum
     RF_STATUS_TX,
     RF_STATUS_RX,
     INVALD_RF_STATUS
-} UC_RF_STATUS_E;
+} uc_rf_status_e;
+
+typedef enum
+{
+    GATING_WK_NULL = 0,
+    GATING_WK_INTERRUPT, // 1
+    GATING_WK_PERIOD,    // 2
+    GATING_WK_RF_SIGNAL, // 3
+} uc_gating_wk_cause_e;
 
 typedef struct
 {
@@ -220,8 +221,8 @@ typedef struct
     unsigned char btvalue;       // bt from rf 1: 0.3, 0: 1.2
     unsigned char bandwidth;     // default 1, 200KHz
     unsigned char spectrum_idx;  // default 3, 470M~510M;
-   // unsigned int systemId; // no use !
-    unsigned short freq_idx;      // freq idx
+                                 // unsigned int systemId; // no use !
+    unsigned short freq_idx;     // freq idx
     unsigned char reserved1[2];
     unsigned int subsystemid;
     unsigned short freq_list[16];
@@ -230,19 +231,23 @@ typedef struct
 
 typedef struct
 {
-    unsigned int result;
+    unsigned char result;
+    unsigned char ack_info;
+    unsigned short reserved;
     unsigned char *oriPtr;
 } uc_send_back_t, *uc_send_back_p;
 
 typedef struct
 {
     void *sem;
-    unsigned int result;
+    unsigned char result;
+    unsigned char ack_info;
+    unsigned short reserved;
 } uc_send_result_t, *uc_send_result_p;
 
 typedef struct
 {
-    unsigned char result; // UC_OP_RESULT
+    unsigned char result; // uc_op_result_e
     unsigned char type;
     unsigned short data_len;
     unsigned char rssi; // absolute value, 0~150, always negative
@@ -314,14 +319,17 @@ typedef struct
     unsigned char spectrum_idx;
     unsigned char bandwidth;
     unsigned char symbol_length;
-    unsigned char lpm_nlen; // 1,2,3,4, default 4
+    unsigned char lpm_nlen;   // 1,2,3,4, default 4
     unsigned char lpm_utimes; // 1,2,3, default 2
-    unsigned char threshold; // detect threshold, 1~15, default 10
+    unsigned char threshold;  // detect threshold, 1~15, default 10
     unsigned char extra_flag; // defalut, if set 1, last period will use extra_period, then wake up
     unsigned short awaken_id; // indicate which id should detect
     unsigned short freq;
     unsigned int detect_period; // ms, like 1000 ms
-    unsigned int extra_period; // ms, extra new period before wake up
+    unsigned int extra_period;  // ms, extra new period before wake up
+    unsigned char reserved1;
+    unsigned char period_multiple;    // the multiples of detect_period using awaken_id_ano, if 0, no need
+    unsigned short awaken_id_another; // another awaken_id
 } uc_lpm_rx_cfg_t, *uc_lpm_rx_cfg_p;
 
 typedef struct
@@ -332,6 +340,19 @@ typedef struct
     unsigned char *data;
 } uc_subf_data_t, *uc_subf_data_p;
 
+typedef struct
+{
+    unsigned char is_ack_info;  // if 1, use ack 1bit to trans info, need set same value both sides
+    unsigned char is_same_info; // if 1, all recv id use same ack info, if 0, use ack_list
+    unsigned char same_info;    // 0 or 1, if use this, below are not used
+    unsigned char list_num;     // list num of id_list and ack_list
+    unsigned short start_byte;  // protocol will get id from app data, need to know which byte to get from
+    unsigned char id_len;       // id len in app data
+    unsigned char reserved;     // 4 bytes align
+    unsigned int *id_list;      // ptr malloc/free by app, if null, set same_info, defaul int, may not use full 4bytes
+    unsigned char *ack_list;    // ptr malloc/free by app, if null, set same_info
+} uc_uni_ack_info_t, *uc_uni_ack_info_p;
+
 typedef void (*uc_recv)(uc_recv_back_p recv_data);
 typedef void (*uc_send)(uc_send_back_p send_result);
 
@@ -339,25 +360,27 @@ extern unsigned char factory_msg_handler(signed int subtype, signed int value);
 
 void uc_wiota_get_version(unsigned char *wiota_version, unsigned char *git_info, unsigned char *time, unsigned int *cce_version);
 
+unsigned char uc_wiota_execute_state(void);
+
 void uc_wiota_init(void);
 
 void uc_wiota_run(void);
 
 void uc_wiota_exit(void);
 
-UC_WIOTA_STATUS uc_wiota_get_state(void);
+uc_wiota_status_e uc_wiota_get_state(void);
 
 void uc_wiota_set_dcxo(unsigned int dcxo);
 
-u32_t uc_wiota_get_dcxo(void);
+unsigned int uc_wiota_get_dcxo(void);
 
 void uc_wiota_set_freq_info(unsigned short freq_idx);
 
 unsigned short uc_wiota_get_freq_info(void);
 
-void uc_wiota_set_subsystem_id(u32_t subsystemid);
+void uc_wiota_set_subsystem_id(unsigned int subsystemid);
 
-u32_t uc_wiota_get_subsystem_id(void);
+unsigned int uc_wiota_get_subsystem_id(void);
 
 void uc_wiota_set_system_config(sub_system_config_t *config);
 
@@ -365,15 +388,21 @@ void uc_wiota_get_system_config(sub_system_config_t *config);
 
 void uc_wiota_get_radio_info(radio_info_t *radio);
 
-UC_OP_RESULT uc_wiota_send_data(unsigned int userId, unsigned char *data, unsigned short len, unsigned char *bcHead, unsigned char headLen, unsigned int timeout, uc_send callback);
+uc_op_result_e uc_wiota_send_data(unsigned int userId, unsigned char *data, unsigned short len, unsigned char *bcHead, unsigned char headLen, unsigned int timeout, uc_send callback);
 
-// void uc_wiota_recv_data(uc_recv_back_p recv_result, unsigned short timeout, uc_recv callback);
+void uc_wiota_recv_data(uc_recv_back_p recv_result, unsigned short timeout, uc_recv callback);
 
-void uc_wiota_register_recv_data_callback(uc_recv callback, UC_CALLBACK_DATA_TYPE type);
+void uc_wiota_register_recv_data_callback(uc_recv callback, uc_callback_data_type_e type);
 
 void uc_wiota_set_lpm_mode(unsigned char lpm_mode);
 
-void uc_wiota_set_is_gating(unsigned char is_gating);
+void uc_wiota_set_is_gating(unsigned char is_gating, unsigned char is_subrecv);
+
+void uc_wiota_set_gating_config(unsigned int timeout, unsigned int period); // second, micro second
+
+void uc_wiota_set_extra_rf_before_send(unsigned int duration); // ms
+
+unsigned char uc_wiota_get_is_gating(void);
 
 void uc_wiota_set_gating_event(unsigned char action, unsigned char event_id);
 
@@ -401,7 +430,9 @@ void uc_wiota_get_throughput(uc_throughput_info_t *throughput_info);
 
 void uc_wiota_light_func_enable(unsigned char func_enable);
 
-boolean uc_wiota_set_subframe_num(unsigned char subframe_num);
+unsigned char uc_wiota_set_two_way_subframe_num(unsigned char subf_num_even, unsigned char subf_num_odd);
+
+unsigned char uc_wiota_set_subframe_num(unsigned char subframe_num);
 
 unsigned char uc_wiota_get_subframe_num(void);
 
@@ -413,23 +444,31 @@ void uc_wiota_set_detect_time(unsigned int wait_cnt);
 
 unsigned int uc_wiota_get_frame_len(unsigned char type);
 
-u32_t uc_wiota_get_frame_len_with_params(u8_t symbol_len, u8_t symbol_mode, u8_t subf_num, u8_t band_width, u8_t suf_mode);
+unsigned int uc_wiota_get_frame_len_with_params(unsigned char symbol_len, unsigned char symbol_mode, unsigned char subf_num, unsigned char band_width, unsigned char suf_mode);
 
-u32_t uc_wiota_get_subframe_len(void);
+unsigned int uc_wiota_get_subframe_len(void);
 
 void uc_wiota_set_continue_send(unsigned char c_send_flag);
 
 void uc_wiota_set_subframe_send(unsigned char s_send_flag);
 
-void uc_wiota_set_subframe_recv(u8_t s_recv_flag);
+void uc_wiota_set_subframe_recv(unsigned char s_recv_flag);
 
-void uc_wiota_set_subframe_head(u8_t head_data);
+void uc_wiota_set_subrecv_fail_limit(unsigned char fail_limit);
+
+void uc_wiota_set_two_way_mode(unsigned char mode, unsigned char is_open);
+
+void uc_wiota_get_two_way_mode(unsigned char *is_send, unsigned char *is_recv);
+
+void uc_wiota_set_lna_pa_gpio(unsigned char lna_gpio, unsigned char pa_gpio, unsigned char lna_trigger, unsigned char pa_trigger);
+
+void uc_wiota_set_subframe_head(unsigned char head_data);
 
 void uc_wiota_set_incomplete_recv(unsigned char recv_flag);
 
 void uc_wiota_set_tx_mode(unsigned char mode);
 
-u8_t uc_wiota_get_tx_mode(void);
+unsigned char uc_wiota_get_tx_mode(void);
 
 void uc_wiota_set_freq_div(unsigned char div_mode);
 
@@ -437,35 +476,35 @@ void uc_wiota_set_vol_mode(unsigned char vol_mode);
 
 void uc_wiota_set_alarm_time(unsigned int sec);
 
-void uc_wiota_set_is_ex_wk(boolean is_need_ex_wk);
+void uc_wiota_set_is_ex_wk(unsigned char is_need_ex_wk);
 
 void uc_wiota_sleep_enter(unsigned char is_need_ex_wk, unsigned char is_need_32k_div);
 
-void uc_wiota_set_recv_mode(UC_AUTO_RECV_MODE mode);
+void uc_wiota_set_recv_mode(uc_auto_recv_mode_e mode);
 
 unsigned short uc_wiota_get_subframe_data_len(unsigned char mcs, unsigned char is_bc, unsigned char is_first);
 
-void uc_wiota_set_adjust_mode(UC_ADJUST_MODE adjust_mode);
+void uc_wiota_set_adjust_mode(uc_adjust_mode_e adjust_mode);
 
 void uc_wiota_set_unisend_fail_cnt(unsigned char cnt);
 
-void uc_wiota_scan_freq(unsigned char* data, unsigned short len, unsigned char scan_round, unsigned int timeout, uc_recv callback, uc_recv_back_p recv_result);
+void uc_wiota_scan_freq(unsigned char *data, unsigned short len, unsigned char scan_round, unsigned int timeout, uc_recv callback, uc_recv_back_p recv_result);
 
 void uc_wiota_paging_rx_enter(unsigned char is_need_32k_div, unsigned int timeout_max);
 
 void uc_wiota_paging_tx_start(void);
 
-boolean uc_wiota_set_paging_tx_cfg(uc_lpm_tx_cfg_t *config);
+unsigned char uc_wiota_set_paging_tx_cfg(uc_lpm_tx_cfg_t *config);
 
-boolean uc_wiota_set_paging_rx_cfg(uc_lpm_rx_cfg_t *config);
+unsigned char uc_wiota_set_paging_rx_cfg(uc_lpm_rx_cfg_t *config);
 
 void uc_wiota_get_paging_tx_cfg(uc_lpm_tx_cfg_t *config);
 
 void uc_wiota_get_paging_rx_cfg(uc_lpm_rx_cfg_t *config);
 
-u16_t uc_wiota_get_awaken_id_limit(unsigned char symbol_len);
+unsigned short uc_wiota_get_awaken_id_limit(unsigned char symbol_len);
 
-boolean uc_wiota_add_subframe_data(uc_subf_data_p subf_data);
+unsigned char uc_wiota_add_subframe_data(uc_subf_data_p subf_data);
 
 void uc_wiota_get_subframe_data(uc_subf_data_p subf_data);
 
@@ -473,33 +512,49 @@ unsigned int uc_wiota_get_subframe_data_num(unsigned char is_recv);
 
 void uc_wiota_set_subframe_data_limit(unsigned int num_limit);
 
-unsigned char uc_wiota_get_physical_status(void); // UC_RF_STATUS_E
+unsigned char uc_wiota_get_physical_status(void); // uc_rf_status_e
 
-boolean uc_wiota_voice_data_acc(unsigned char is_first, unsigned int *data, u16_t data_len);
+unsigned char uc_wiota_voice_data_acc(unsigned char is_first, unsigned int *data, unsigned short data_len);
 
-void uc_wiota_set_outer_32K(boolean is_open);
+void uc_wiota_set_outer_32K(unsigned char is_open);
 
-unsigned char uc_wiota_get_awakened_cause(unsigned char *is_cs_awakened); // UC_AWAKENED_CAUSE
+unsigned char uc_wiota_get_awakened_cause(unsigned char *is_cs_awakened); // uc_awakened_cause_e
 
-unsigned char uc_wiota_get_paging_awaken_cause(u32_t *detected_times); // UC_LPM_PAGING_WAKEN_CAUSE_E
+unsigned char uc_wiota_get_paging_awaken_cause(unsigned int *detected_times); // uc_lpm_paging_waken_cause_e
 
 unsigned int uc_wiota_get_curr_rf_cnt(void);
 
-UC_OP_RESULT uc_wiota_send_data_with_start_time(u32_t userId, u8_t *data, u16_t len, u8_t *bcHead, u8_t headLen, u32_t timeout, uc_send callback, u32_t start_time);
+uc_op_result_e uc_wiota_send_data_with_start_time(unsigned int userId, unsigned char *data, unsigned short len, unsigned char *bcHead, unsigned char headLen, unsigned int timeout, uc_send callback, unsigned int start_time);
 
-void uc_wiota_set_symbol_mode(u8_t symbol_mode);
+void uc_wiota_set_symbol_mode(unsigned char symbol_mode);
 
-void uc_wiota_set_rf_ctrl_type(u8_t rf_ctrl_type);
+void uc_wiota_set_rf_ctrl_type(unsigned char rf_ctrl_type);
 
-void uc_wiota_set_auto_ack_pow(boolean is_open);
+void uc_wiota_set_auto_ack_pow(unsigned char is_open);
 
-boolean uc_wiota_get_auto_ack_pow(void);
+unsigned char uc_wiota_get_auto_ack_pow(void);
 
-boolean uc_wiota_suspend(void);
+unsigned char uc_wiota_suspend(void);
 
-boolean uc_wiota_recover(void);
+unsigned char uc_wiota_recover(void);
 
+void uc_wiota_check_gating_with_interrupt(void);
 
+unsigned char uc_wiota_get_gating_wk_cause(void);
+
+unsigned char uc_wiota_factory_task_init(void);
+
+void uc_wiota_factory_fill_data(unsigned char *data, unsigned short data_len);
+
+void uc_wiota_factory_register_data_callback(uc_recv callback);
+
+void uc_wiota_factory_task_exit(void);
+
+unsigned char uc_wiota_calc_suitable_subframe_num(unsigned char type, unsigned short data_len);
+
+void uc_wiota_get_uni_ack_info(uc_uni_ack_info_p uni_ack_info_ptr);
+
+void uc_wiota_set_uni_ack_info(uc_uni_ack_info_p uni_ack_info_ptr);
 
 // below is about uboot
 void get_uboot_version(unsigned char *version);

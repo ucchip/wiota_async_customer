@@ -746,10 +746,11 @@ void rtc_calibrate(void)
         //unsigned char temp = 128;
         //unsigned char base_count;
 
+        rt_kprintf("LDO1 %x\r\n", *(volatile int *)(POWER_LDO));
+
         rtc_set_power_ldo(mid);
         afc_delay(10);
 
-        rt_kprintf("LDO = %x\r\n", *(volatile int *)(POWER_LDO));
         while (left < right)
         {
             afc_measure(data);

@@ -51,7 +51,7 @@ int uc_recv_test_queue(void *queue, void **buf, unsigned int size, signed int ti
     int result = 0;
     result = rt_mq_recv(queue, &address, 4, timeout);
     *buf = (void *)address;
-    //TRACE_PRINTF("recv address 0x%x, buf=0x%x\n", address,  *buf);
+    //rt_kprintf("recv address 0x%x, buf=0x%x\n", address,  *buf);
     return result;
 
 }
@@ -59,7 +59,7 @@ int uc_recv_test_queue(void *queue, void **buf, unsigned int size, signed int ti
 int uc_send_test_queue(void *queue, void *buf, unsigned int size, signed int timeout)
 {
     unsigned int address = (unsigned int)buf;
-    //TRACE_PRINTF("send address 0x%x\n", address);
+    //rt_kprintf("send address 0x%x\n", address);
     return rt_mq_send_wait(queue, &address, 4, timeout);
 }
 

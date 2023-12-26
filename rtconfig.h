@@ -119,7 +119,6 @@
 #define _FPGA_
 #define _RT_THREAD_
 #define _ALLOW_TRACE_PRITF_TEST_
-#define UC8288_FACTORY
 #define _L1_FACTORY_FUNC_
 #define _CLK_GATING_
 

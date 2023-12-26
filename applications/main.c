@@ -73,11 +73,12 @@
 #include "dll.h"
 #endif
 
-#ifdef  RT_TASK_RESOURCE_TOOL
+#ifdef RT_TASK_RESOURCE_TOOL
 #include "resource_manager.h"
 #endif
 
-extern void uc_wiota_static_data_init(void);
+#include "uc_wiota_static.h"
+#include "uc_wiota_api.h"
 
 #if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
 extern void at_handle_log_uart(int uart_number);
@@ -162,10 +163,19 @@ int main(void)
 #endif
 
 #ifdef UC8288_MODULE
-#ifdef RT_USING_AT
-    at_server_init();
-    // at_wiota_manager();
-#endif
+    if (!uc_wiota_get_factory_ctrl())
+    {
+        #ifdef RT_USING_AT
+        at_server_init();
+        // at_wiota_manager();
+        #endif
+    }
+    else
+    {
+        #ifdef _L1_FACTORY_FUNC_
+        uc_wiota_factory_task_init();
+        #endif
+    }
 #else
 #ifdef WIOTA_API_TEST
     app_task_init();
@@ -173,7 +183,7 @@ int main(void)
 #endif
 
 #ifdef WIOTA_RELAY_APP
-extern int uc_wiota_relay_app_init(void);
+    extern int uc_wiota_relay_app_init(void);
     if (0 == uc_wiota_relay_app_init())
     {
         rt_kprintf("uc_wiota_relay_app_init suc\n");

@@ -59,6 +59,16 @@ void rt_tick_set(rt_tick_t tick)
  * This function will notify kernel there is one tick passed. Normally,
  * this function is invoked by clock ISR.
  */
+
+void rt_tick_increase_tick(void)
+{
+#ifdef RT_USING_SMP
+    rt_cpu_self()->tick ++;
+#else
+    ++ rt_tick;
+#endif
+}
+
 void rt_tick_increase(void)
 {
     struct rt_thread* thread;

@@ -13,8 +13,8 @@ config _ALLOW_TRACE_PRITF_TEST_
     default y
 
 config UC8288_FACTORY
-    bool "factory mode,recv and send test, default open(UC8288_FACTORY)"
-    default y
+    bool "factory mode,recv and send test, default close(UC8288_FACTORY)"
+    default n
 
 config _L1_FACTORY_FUNC_
     bool "factory mode, default open(_L1_FACTORY_FUNC_)"
