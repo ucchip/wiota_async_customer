@@ -18,6 +18,10 @@
 #include "uc_gpio.h"
 #include "uc_event.h"
 
+#define DBG_TAG     "drv.gpio"
+#define DBG_LVL     DBG_INFO
+#include <rtdbg.h>
+
 static struct rt_pin_irq_hdr pin_irq_hdr_tab[] = {
     {-1, 0, RT_NULL, RT_NULL},
     {-1, 0, RT_NULL, RT_NULL},
@@ -75,33 +79,31 @@ static void uc8088_pin_mode(rt_device_t dev, rt_base_t pin, rt_base_t mode)
         return;
     }
 
-    if (mode == PIN_MODE_OUTPUT)
-    {
+    gpio_set_pin_mux(UC_GPIO_CFG, pin, GPIO_FUNC_0);
+
+    switch (mode) {
+    case PIN_MODE_OUTPUT:
         /* output setting */
-        gpio_set_pin_mux(UC_GPIO_CFG, pin, GPIO_FUNC_0);
         gpio_set_pin_pupd(UC_GPIO_CFG, pin, GPIO_PUPD_UP);
         gpio_set_pin_direction(UC_GPIO, pin, GPIO_DIR_OUT);
-    }
-    else if (mode == PIN_MODE_INPUT)
-    {
+        break;
+    case PIN_MODE_INPUT:
         /* input setting */
-        gpio_set_pin_mux(UC_GPIO_CFG, pin, GPIO_FUNC_0);
         gpio_set_pin_pupd(UC_GPIO_CFG, pin, GPIO_PUPD_NONE);
         gpio_set_pin_direction(UC_GPIO, pin, GPIO_DIR_IN);
-    }
-    else if (mode == PIN_MODE_INPUT_PULLUP)
-    {
+        break;
+    case PIN_MODE_INPUT_PULLUP:
         /* input setting: pull up. */
-        gpio_set_pin_mux(UC_GPIO_CFG, pin, GPIO_FUNC_0);
         gpio_set_pin_pupd(UC_GPIO_CFG, pin, GPIO_PUPD_UP);
         gpio_set_pin_direction(UC_GPIO, pin, GPIO_DIR_IN);
-    }
-    else if (mode == PIN_MODE_OUTPUT_OD)
-    {
+        break;
+    case PIN_MODE_OUTPUT_OD:
         /* output setting: od. */
-        gpio_set_pin_mux(UC_GPIO_CFG, pin, GPIO_FUNC_0);
         gpio_set_pin_pupd(UC_GPIO_CFG, pin, GPIO_PUPD_NONE);
         gpio_set_pin_direction(UC_GPIO, pin, GPIO_DIR_OUT);
+        break;
+    default:
+        LOG_E("gpio mode error, pin = %d, value = %d", pin, mode);
     }
 }
 

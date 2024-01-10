@@ -65,6 +65,10 @@
 #include "uc_spim_flash_app.h"
 #endif
 
+#ifdef _UART_APP_
+#include "uc_uart_app.h"
+#endif
+
 #ifdef _RS485_APP_
 #include "uc_rs485_app.h"
 #endif
@@ -142,7 +146,6 @@ void app_device_demo(void)
 #ifdef _UART_APP_
     uart_app_sample();
 #endif
-
 }
 
 int main(void)

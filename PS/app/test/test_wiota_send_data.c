@@ -76,7 +76,7 @@ static void wiota_async_recv_cb(uc_recv_back_p data)
 
 static void wiota_async_send_task(void *parameter)
 {
-    UC_OP_RESULT send_result;
+    int32_t send_result;
     uint16_t data_len;
     uint32_t my_user_id = 0xabe44fcb;
     uint32_t target_user_id = 0xabe44fca;
