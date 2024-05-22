@@ -374,6 +374,8 @@ void uc_wiota_set_dcxo(unsigned int dcxo);
 
 unsigned int uc_wiota_get_dcxo(void);
 
+void uc_wiota_set_dcxo_by_temp_curve(void);
+
 void uc_wiota_set_freq_info(unsigned short freq_idx);
 
 unsigned short uc_wiota_get_freq_info(void);
@@ -452,7 +454,11 @@ void uc_wiota_set_continue_send(unsigned char c_send_flag);
 
 void uc_wiota_set_subframe_send(unsigned char s_send_flag);
 
+unsigned char uc_wiota_get_subframe_send(void);
+
 void uc_wiota_set_subframe_recv(unsigned char s_recv_flag);
+
+unsigned char uc_wiota_get_subframe_recv(void);
 
 void uc_wiota_set_subrecv_fail_limit(unsigned char fail_limit);
 
@@ -556,6 +562,12 @@ void uc_wiota_get_uni_ack_info(uc_uni_ack_info_p uni_ack_info_ptr);
 
 void uc_wiota_set_uni_ack_info(uc_uni_ack_info_p uni_ack_info_ptr);
 
+void uc_wiota_get_module_id(unsigned char *module_id);
+
+unsigned char uc_wiota_set_data_limit(unsigned char mode, unsigned short limit);
+
+unsigned short uc_wiota_get_data_limit(unsigned char mode);
+
 // below is about uboot
 void get_uboot_version(unsigned char *version);
 
@@ -566,6 +578,10 @@ void set_uboot_baud_rate(int baud_rate);
 void get_uboot_mode(unsigned char *mode);
 
 void set_uboot_mode(unsigned char mode);
+
+void set_uboot_wait_sec(unsigned char wait_sec);
+
+unsigned char get_uboot_wait_sec();
 
 void set_partition_size(int bin_size, int reserverd_size, int ota_size);
 

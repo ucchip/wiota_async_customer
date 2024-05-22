@@ -134,6 +134,54 @@ extern "C"
     unsigned int uc_wiota_get_at_baud_rate(void);
 
     /**
+    * @brief    set store pin
+    * @param[IN]    store_pin 0~18
+    */
+    void uc_wiota_set_store_pin(unsigned char store_pin);
+
+    /**
+    * @brief    get store pin
+    * @return unsigned char 0~18
+    */
+    unsigned char uc_wiota_get_store_pin(void);
+
+    /**
+    * @brief    set store width
+    * @param[IN]    store_width 1~255ms
+    */
+    void uc_wiota_set_store_width(unsigned char store_width);
+
+    /**
+    * @brief    get store width
+    * @return unsigned char 1~255ms
+    */
+    unsigned char uc_wiota_get_store_width(void);
+
+    /**
+    * @brief    set wake out pin
+    * @param[IN]    wake_out_pin 0~18
+    */
+    void uc_wiota_set_wake_out_pin(unsigned char wake_out_pin);
+
+    /**
+    * @brief    get wake out pin
+    * @return unsigned char 0~18
+    */
+    unsigned char uc_wiota_get_wake_out_pin(void);
+
+    /**
+    * @brief    set wake out width
+    * @param[IN]    wake_out_width 1~255ms
+    */
+    void uc_wiota_set_wake_out_width(unsigned char wake_out_width);
+
+    /**
+    * @brief    get wake out width
+    * @return unsigned char 1~255ms
+    */
+    unsigned char uc_wiota_get_wake_out_width(void);
+
+    /**
      * @brief  get auto connect flag
      *
      * @return the auto connect flag (0 or 1)

@@ -87,6 +87,9 @@
 #if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
 extern void at_handle_log_uart(int uart_number);
 #endif
+extern int at_wiota_gpio_report_init(void);
+extern int wake_out_pulse_init(void);
+
 // extern void at_wiota_manager(void);
 
 //void task_callback(struct rt_thread* from, struct rt_thread* to)
@@ -185,6 +188,9 @@ int main(void)
 #endif
 #endif
 
+    at_wiota_gpio_report_init();
+    wake_out_pulse_init();
+
 #ifdef WIOTA_RELAY_APP
     extern int uc_wiota_relay_app_init(void);
     if (0 == uc_wiota_relay_app_init())
@@ -203,17 +209,16 @@ int main(void)
 
     //    uc_wiota_light_func_enable(0);
 
-
-
+    // rt_kprintf("before while\n");
     app_device_demo();
 
-    while(1)
+    while (1)
     {
         unsigned int total;
         unsigned int used;
         unsigned int max_used;
 
-        rt_thread_delay(10000);
+        rt_thread_delay(7000);
 
         // resource_manager(RESOURCE_DETAIL_MODE);
         // resource_manager(RESOURCE_SIMPLE_MODE);

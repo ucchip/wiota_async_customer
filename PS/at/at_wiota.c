@@ -196,6 +196,7 @@ static at_result_t at_freq_setup(const char *args)
 static at_result_t at_dcxo_setup(const char *args)
 {
     int dcxo = 0;
+    int dcxo_idx = 0;
 
     WIOTA_CHECK_AUTOMATIC_MANAGER();
 
@@ -207,7 +208,17 @@ static at_result_t at_dcxo_setup(const char *args)
         return AT_RESULT_PARSE_FAILE;
     }
     // rt_kprintf("dcxo=0x%x\n", dcxo);
-    uc_wiota_set_dcxo(dcxo);
+
+    dcxo_idx = (dcxo >> 12) & 0xFF;
+
+    if (dcxo_idx >= 0 && dcxo_idx <= 64)
+    {
+        uc_wiota_set_dcxo(dcxo);
+    }
+    else if (65 == dcxo_idx)
+    {
+        uc_wiota_set_dcxo_by_temp_curve();
+    }
 
     return AT_RESULT_OK;
 }
@@ -855,7 +866,7 @@ static at_result_t at_wiotalpm_setup(const char *args)
         // WIOTA_MUST_RUN(wiota_state)
         at_server_printfln("OK");
         uart_wait_tx_done();
-        uc_wiota_paging_rx_enter((unsigned char)value, (unsigned char)value2);
+        uc_wiota_paging_rx_enter((unsigned char)value, (unsigned int)value2);
         break;
     }
     case AT_WIOTA_CLOCK:
@@ -1585,7 +1596,7 @@ static at_result_t at_paging_tx_config_setup(const char *args)
         return AT_RESULT_PARSE_FAILE;
     }
 
-    config.freq = (unsigned char)temp[0];
+    config.freq = (unsigned short)temp[0];
     config.spectrum_idx = (unsigned char)temp[1];
     config.bandwidth = (unsigned char)temp[2];
     config.symbol_length = (unsigned char)temp[3];
@@ -1635,7 +1646,7 @@ static at_result_t at_paging_rx_config_setup(const char *args)
 
     uc_wiota_get_paging_rx_cfg(&config);
 
-    config.freq = (unsigned char)temp[0];
+    config.freq = (unsigned short)temp[0];
     config.spectrum_idx = (unsigned char)temp[1];
     config.bandwidth = (unsigned char)temp[2];
     config.symbol_length = (unsigned char)temp[3];

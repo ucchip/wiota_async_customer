@@ -16,17 +16,8 @@
 #include "test_wiota_fixed_time.h"
 
 static rt_mq_t operation_queue_handle = RT_NULL;
-static uint32_t g_my_userid = 0x385e5b;
+static uint32_t g_my_userid = 0x385e5c;
 
-typedef struct
-{
-    uint8_t type;
-    uint8_t report_interval;
-    uint8_t bc_interval; 
-    uint32_t bc_count;
-    uint32_t gw_id;
-    uint32_t dev_id[2];
-} bc_data_t;
 typedef struct
 {
     uint32_t cur_rf_cnt;
@@ -46,14 +37,15 @@ static void user_recv_callback(uc_recv_back_p recv_data)
           rt_kprintf("----------user_recv_callback----------\n");
 
           if (RT_EOK != rt_mq_send(operation_queue_handle, &recv_info, sizeof(recv_mq_t)))
-          {              
-               rt_kprintf("%s line %d rt_mq_send fail\n", __FUNCTION__, __LINE__);
-          }
-          if (recv_data)
           {
-               rt_free(recv_data->data);  
+               rt_kprintf("%s line %d rt_mq_send fail\n", __FUNCTION__, __LINE__);
+               rt_free(recv_data->data);
           }
-          
+          // if (recv_data)
+          // {
+          //      rt_free(recv_data->data);
+          // }
+
      }
 
 }
@@ -67,11 +59,12 @@ static int wiota_init(uint16_t freq, uc_recv recv_cb)
      // set wiota config
      uc_wiota_get_system_config(&config);
      // config.subsystemid = subsystem_id;
-     // uc_wiota_set_system_config(&config);
+     config.symbol_length = 0;
+     uc_wiota_set_system_config(&config);
      rt_kprintf("id_len %d, symbol_length %d, pz %d, btvalue %d, spectrum_idx %d, subsystemid 0x%x",
              config.id_len, config.symbol_length, config.pz, config.btvalue, config.spectrum_idx, config.subsystemid);
 
-     uc_wiota_set_userid(&g_my_userid, 3);
+     uc_wiota_set_userid(&g_my_userid, 4);
 
      uc_wiota_log_switch(UC_LOG_UART, 1);
 
@@ -89,6 +82,8 @@ static int wiota_init(uint16_t freq, uc_recv recv_cb)
 
      uc_wiota_set_subframe_num(ASYNC_WIOTA_MIN_SUBFRAM_NUM);
 
+     uc_wiota_set_bc_round(ASYNC_WIOTA_BC_ROUND);
+
      // rr_set_power(0);
 
      uc_wiota_run();
@@ -104,14 +99,27 @@ static void wiota_end(void)
      uc_wiota_exit();
 }
 
+extern uint32_t state_get_frame_len(void);
+
 static void manager_operation_task(void *pPara)
 {
      int res = 0;
      uint8_t order = 0xff;
-     uint16_t freq = 25;
+     uint16_t freq = 55;
      uint32_t dest_addr;
      uint32_t dev_start_time = 0;
-     uint8_t buff[] = {"hello dtu! my id 0x385e5b"};
+     uint8_t *buff = rt_malloc(282);
+     uint32_t report_interval = 0;
+    //  uint8_t buff[28] = {"hello dtu! my id 0x385e5b"};
+
+     // reserved 2byte for crc, CRC16_LEN
+    //  buff[26] = 0;
+    //  buff[27] = 0;
+
+    for (uint16_t i = 0; i < 280; i++)
+    {
+        buff[i] = i & 0xFF;
+    }
 
      wiota_init(freq, user_recv_callback);
 
@@ -124,20 +132,22 @@ static void manager_operation_task(void *pPara)
           {
                order = 0xff;
                // printf recv data
-               rt_kprintf("recv data : ");
+            //    rt_kprintf("recv data %u: \n", recv_info.cur_rf_cnt);
                // transimit_data = (bc_data_t*)recv_info.data;
-               rt_kprintf("%d %d %d %d %x %x %x\n",
-                          recv_info.data->type, 
-                          recv_info.data->report_interval, 
-                          recv_info.data->bc_interval,  
-                          recv_info.data->bc_count, 
-                          recv_info.data->gw_id, 
-                          recv_info.data->dev_id[0], 
+               rt_kprintf("recv data %u %d %d %d %d %x %x %x\n",
+                          recv_info.cur_rf_cnt,
+                          recv_info.data->type,
+                          recv_info.data->report_interval,
+                          recv_info.data->bc_interval,
+                          recv_info.data->bc_count,
+                          recv_info.data->gw_id,
+                          recv_info.data->dev_id[0],
                           recv_info.data->dev_id[1]);
 
-               rt_kprintf("cur_rf_cnt = %d my id = %x \n", recv_info.cur_rf_cnt, g_my_userid);
+            //    rt_kprintf("cur_rf_cnt = %d my id = %x \n", recv_info.cur_rf_cnt, g_my_userid);
 
                dest_addr = recv_info.data->gw_id;
+            //    dest_addr = 0;
 
                // This example only has two terminals
                if (recv_info.data->dev_id[0] == g_my_userid)
@@ -150,26 +160,35 @@ static void manager_operation_task(void *pPara)
                }
                else
                {
+                    rt_free(recv_info.data);
                     rt_kprintf("No need to report \n");
                     continue;
-               }    
+               }
                rt_kprintf("order = %d\n", order);
-               
-               dev_start_time = recv_info.cur_rf_cnt + recv_info.data->bc_interval * 1000 + order * recv_info.data->report_interval * 1000;
+
+
+            //    dev_start_time = recv_info.cur_rf_cnt + recv_info.data->bc_interval * 1000 + order * recv_info.data->report_interval * 1000;
+            //    dev_start_time = recv_info.cur_rf_cnt + recv_info.data->bc_interval * 1000 + order * 70 * 1000;
+               report_interval = state_get_frame_len();
+               dev_start_time = recv_info.cur_rf_cnt + recv_info.data->bc_interval * 1000 + order * report_interval;
+
                res = uc_wiota_send_data_with_start_time(dest_addr,
-                                                  &buff,
-                                                  sizeof(buff),
+                                                  buff,
+                                                  280,
                                                   RT_NULL,
                                                   0,
                                                   60000,
                                                   RT_NULL,
                                                   dev_start_time);
+
+               rt_free(recv_info.data);
+
                if (res == UC_OP_SUCC)
                {
                     rt_kprintf("uc_wiota_send_data_with_start_time send success\n");
                }else if(res == UC_OP_TIMEOUT)
                {
-                   rt_kprintf("uc_wiota_send_data_with_start_time send timeout\n"); 
+                   rt_kprintf("uc_wiota_send_data_with_start_time send timeout\n");
                }
                else
                {

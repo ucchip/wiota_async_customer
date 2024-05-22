@@ -68,7 +68,7 @@ static void wiota_init(uint16_t freq, recv_callback recv_cb)
      uc_wiota_set_system_config(&config);
 
      // Set the user ID and configure it after protocol stack initialization before startup
-     uc_wiota_set_userid(&my_user_id, 3);
+     uc_wiota_set_userid(&my_user_id, 4);
 
      uc_wiota_set_crc(1);
 
@@ -102,14 +102,18 @@ static void manager_operation_task(void *pPara)
      uint16_t freq = 25;
      int32_t result = -1;
      uint32_t dest_addr = 0x385e5b;// 3694171
-     uint8_t msg[14] = {"hello WIOTA!!!"};
+     uint8_t msg[17] = {"hello WIOTA!!!"};
      int32_t timeout = 60000;
      int32_t sleep_time = 5; // 5s
+
+     // reserved 2byte for crc， CRC16_LEN
+     msg[15] = 0;
+     msg[16] = 0;
 
      wiota_init(freq, user_recv_callback);
    
      // send data
-     result = uc_wiota_send_data(dest_addr, msg, 14, RT_NULL, 0, timeout, RT_NULL);
+     result = uc_wiota_send_data(dest_addr, msg, 15, RT_NULL, 0, timeout, RT_NULL);
      
      if (UC_OP_SUCC == result)
      {

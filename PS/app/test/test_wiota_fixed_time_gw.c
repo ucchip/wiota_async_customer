@@ -16,15 +16,6 @@
 #include "test_wiota_fixed_time.h"
 
 static uint32_t g_my_userid = 0x385e5a;
-typedef struct
-{
-    uint8_t type;
-    uint8_t report_interval;
-    uint8_t bc_interval; 
-    uint32_t bc_count;
-    uint32_t gw_id;
-    uint32_t dev_id[2];
-} bc_data_t;
 
 typedef void (*recv_callback)(void *recv_data);
 
@@ -38,10 +29,11 @@ static int wiota_init(uint16_t freq, uc_recv recv_cb)
     // set wiota config
     uc_wiota_get_system_config(&config);
     // config.subsystemid = subsystem_id;
-    // uc_wiota_set_system_config(&config);
+    config.symbol_length = 0;
+    uc_wiota_set_system_config(&config);
     rt_kprintf("id_len %d, symbol_length %d, pz %d, btvalue %d, spectrum_idx %d, subsystemid 0x%x",
             config.id_len, config.symbol_length, config.pz, config.btvalue, config.spectrum_idx, config.subsystemid);
-    uc_wiota_set_userid(&g_my_userid, 3);
+    uc_wiota_set_userid(&g_my_userid, 4);
 
     uc_wiota_log_switch(UC_LOG_UART, 1);
 
@@ -53,7 +45,7 @@ static int wiota_init(uint16_t freq, uc_recv recv_cb)
 
     uc_wiota_set_detect_time(0);
 
-    // uc_wiota_set_is_osc(uc_wiota_get_is_osc());
+    uc_wiota_set_is_osc(1);
 
     uc_wiota_set_unisend_fail_cnt(WIOTA_SEND_FAIL_CNT);
 
@@ -82,27 +74,29 @@ static void user_recv_callback(uc_recv_back_p recv_data)
     if (UC_OP_SUCC == recv_data->result)
     {
         rt_kprintf("----------wiota_recv_callback----------\n");
-        rt_kprintf("recv data : ");
-        for (uint16_t index = 0; index < recv_data->data_len; index++)
-        {
-            rt_kprintf("%c", *(recv_data->data + index));
-        }
-        rt_kprintf(", data_len %d\n", recv_data->data_len);
+        // rt_kprintf("recv data : ");
+        // for (uint16_t index = 0; index < recv_data->data_len; index++)
+        // {
+        //     rt_kprintf("%c", *(recv_data->data + index));
+        // }
+        // rt_kprintf(", data_len %d\n", recv_data->data_len);
 
         if (recv_data)
         {
-            rt_free(recv_data->data);  
+            rt_free(recv_data->data);
         }
-    }   
+    }
 }
 
 static void manager_operation_task(void *pPara)
 {
-    uint16_t freq = 25;
+    uint16_t freq = 55;
     int res = -1;
-    uint32_t recv_id[4] = {0x385e5b, 0x385e5c};
+    uint32_t recv_id[2] = {0x385e5b, 0x385e5c};
     bc_data_t msg = {0};
-    
+    uint16_t msg_len = sizeof(bc_data_t);
+    uint8_t* data_ptr = rt_malloc(msg_len + CRC16_LEN);
+
     uint32_t start_time = 0;
     uint32_t bc_complete_time = 0;
     uint32_t delay_time = 0;
@@ -117,31 +111,36 @@ static void manager_operation_task(void *pPara)
     msg.dev_id[0] = recv_id[0]; // userid 0x385e5b
     msg.dev_id[1] = recv_id[1]; // userid 0x385e5c
 
+    rt_memset(data_ptr, msg_len + CRC16_LEN, 0);
+    rt_memcpy(data_ptr, (uint8_t*)&msg, msg_len);
+
+    rt_kprintf("msg size %d\n", msg_len);
+
     while (1)
     {
-        start_time = uc_wiota_get_curr_rf_cnt(); // us        
+        start_time = uc_wiota_get_curr_rf_cnt(); // us
 
-        res = uc_wiota_send_data(0, (uint8_t*)&msg, sizeof(msg), RT_NULL, 0, 60000, RT_NULL);
+        res = uc_wiota_send_data(0, data_ptr, msg_len, RT_NULL, 0, 60000, RT_NULL);
         bc_complete_time = uc_wiota_get_curr_rf_cnt();
 
         if (res == UC_OP_SUCC)
         {
-            rt_kprintf("bc_count %d send success\n", msg.bc_count);
+            rt_kprintf("bc_count %u send success\n", msg.bc_count);
             msg.bc_count++;
         }
         else
         {
-            rt_kprintf("bc_count %d send fail\n", msg.bc_count);
+            rt_kprintf("bc_count %u send fail\n", msg.bc_count);
             msg.bc_count++;
-        }             
+        }
 
         /******************************************************************************
-        * @brief    
-        * Delay starts from the completion of the previous broadcast 
-        * and continues until all terminals have reported information. 
+        * @brief
+        * Delay starts from the completion of the previous broadcast
+        * and continues until all terminals have reported information.
         * After the delay is complete, continue to send the next broadcast.
         * Please refer to the official website documentation for a detailed explanation.
-        * 
+        *
         ******************************************************************************/
         delay_time = ASYNC_BC_SLOT + ASYNC_REPORT_INTAERVAL * ASYNC_BC_DEV_NUM - (bc_complete_time - start_time)/1000;
         rt_kprintf("start_time = %d bc_complete_time = %d delay_time = %d \n", start_time, bc_complete_time, delay_time);
