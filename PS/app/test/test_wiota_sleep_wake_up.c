@@ -106,7 +106,7 @@ static void manager_operation_task(void *pPara)
      int32_t timeout = 60000;
      int32_t sleep_time = 5; // 5s
 
-     // reserved 2byte for crc， CRC16_LEN
+     // reserved 2byte for crc, CRC16_LEN
      msg[15] = 0;
      msg[16] = 0;
 

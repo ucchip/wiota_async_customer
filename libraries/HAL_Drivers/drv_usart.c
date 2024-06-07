@@ -244,6 +244,7 @@ static struct rt_uart_ops uc8088_uart_ops =
 
 void uart0_handler(void)
 {
+    // uc_wiota_check_gating_with_interrupt();
 #ifdef BSP_USING_UART0
     if ((uart_obj[UART0_INDEX].serial.serial_rx != NULL) && uc_uart_get_intrxflag(uart_obj[UART0_INDEX].handle))
     {

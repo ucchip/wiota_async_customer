@@ -42,12 +42,13 @@ typedef enum
 
 typedef enum
 {
-    UC_RECV_MSG = 0,    // UC_CALLBACK_NORAMAL_MSG, normal msg
-    UC_RECV_BC,         // UC_CALLBACK_NORAMAL_MSG, broadcast msg
-    UC_RECV_SCAN_FREQ,  // UC_CALLBACK_NORAMAL_MSG, result of freq scan by riscv
-    UC_RECV_PHY_RESET,  // UC_CALLBACK_STATE_INFO, if phy reseted once, tell app
-    UC_RECV_SYNC_STATE, // UC_CALLBACK_STATE_INFO, when subf recv mode, if sync succ, report UC_OP_SUCC, if track fail, report UC_OP_FAIL
-    UC_RECV_ACC_DATA,   // UC_CALLBACK_NORAMAL_MSG, acc voice data
+    UC_RECV_MSG = 0,          // UC_CALLBACK_NORAMAL_MSG, normal msg
+    UC_RECV_BC,               // UC_CALLBACK_NORAMAL_MSG, broadcast msg
+    UC_RECV_SCAN_FREQ,        // UC_CALLBACK_NORAMAL_MSG, result of freq scan by riscv
+    UC_RECV_PHY_RESET,        // UC_CALLBACK_STATE_INFO, if phy reseted once, tell app
+    UC_RECV_SYNC_STATE,       // UC_CALLBACK_STATE_INFO, when subf recv mode, if sync succ, report UC_OP_SUCC, if track fail, report UC_OP_FAIL
+    UC_RECV_ACC_DATA,         // UC_CALLBACK_NORAMAL_MSG, acc voice data
+    UC_RECV_SAVE_STATIC_DONE, // UC_CALLBACK_STATE_INFO, save static done when run
     UC_RECV_MAX_TYPE,
 } uc_recv_data_type_e;
 
@@ -87,7 +88,11 @@ typedef enum
 typedef enum
 {
     UC_RATE_NORMAL = 0,
-    UC_RATE_MID = 1,
+    UC_RATE_CRC_TYPE = 1,       // 0, normal mode, 1, only one byte crc
+    UC_RATE_UNI_ACK_MODE = 2,   // uc_uni_ack_mode_e
+    UC_RATE_FIRST_MCS_MODE = 3, // default 0, first bc mcs is 0, 1: calc access mcs
+    UC_RATE_PRM_GAP_MODE = 4,   // uc_prm_gap_mode_e
+    UC_RATE_OLD_UNI_MODE = 5,   // 1: old mode, default 0: new mode
     UC_RATE_OTHER,
 } uc_data_rate_mode_e;
 
@@ -197,6 +202,28 @@ typedef enum
     GATING_WK_PERIOD,    // 2
     GATING_WK_RF_SIGNAL, // 3
 } uc_gating_wk_cause_e;
+
+typedef enum
+{
+    FIRST_MCS_FIX0 = 0, // fix to 0
+    FIRST_MCS_FLEX = 1, // calc by mcs set
+    FIRST_MCS_UNVALID,
+} uc_first_mcs_mode_e;
+
+typedef enum
+{
+    UNI_ACK_NONE = 0,  // every uni frame has no ack
+    UNI_ACK_EVERY = 1, // every uni frame has ack
+    UNI_ACK_LAST = 2,  // only last frame has ack
+    UNI_ACK_UNVALID,
+} uc_uni_ack_mode_e;
+
+typedef enum
+{
+    PRM_GAP_NONE = 0,
+    PRM_GAP_HAS = 1,
+    PRM_GAP_UNVALID,
+} uc_prm_gap_mode_e;
 
 typedef struct
 {
@@ -392,7 +419,7 @@ void uc_wiota_get_radio_info(radio_info_t *radio);
 
 uc_op_result_e uc_wiota_send_data(unsigned int userId, unsigned char *data, unsigned short len, unsigned char *bcHead, unsigned char headLen, unsigned int timeout, uc_send callback);
 
-void uc_wiota_recv_data(uc_recv_back_p recv_result, unsigned short timeout, uc_recv callback);
+void uc_wiota_recv_data(uc_recv_back_p recv_result, unsigned short timeout, unsigned int userId, uc_recv callback);
 
 void uc_wiota_register_recv_data_callback(uc_recv callback, uc_callback_data_type_e type);
 
@@ -446,6 +473,8 @@ void uc_wiota_set_detect_time(unsigned int wait_cnt);
 
 unsigned int uc_wiota_get_frame_len(unsigned char type);
 
+unsigned int uc_wiota_get_frame_len_us(unsigned char type);
+
 unsigned int uc_wiota_get_frame_len_with_params(unsigned char symbol_len, unsigned char symbol_mode, unsigned char subf_num, unsigned char band_width, unsigned char suf_mode);
 
 unsigned int uc_wiota_get_subframe_len(void);
@@ -488,7 +517,7 @@ void uc_wiota_sleep_enter(unsigned char is_need_ex_wk, unsigned char is_need_32k
 
 void uc_wiota_set_recv_mode(uc_auto_recv_mode_e mode);
 
-unsigned short uc_wiota_get_subframe_data_len(unsigned char mcs, unsigned char is_bc, unsigned char is_first);
+unsigned short uc_wiota_get_subframe_data_len(unsigned char mcs, unsigned char is_bc, unsigned char is_first_sub, unsigned char is_first_fn);
 
 void uc_wiota_set_adjust_mode(uc_adjust_mode_e adjust_mode);
 
@@ -526,7 +555,7 @@ void uc_wiota_set_outer_32K(unsigned char is_open);
 
 unsigned char uc_wiota_get_awakened_cause(unsigned char *is_cs_awakened); // uc_awakened_cause_e
 
-unsigned char uc_wiota_get_paging_awaken_cause(unsigned int *detected_times); // uc_lpm_paging_waken_cause_e
+unsigned char uc_wiota_get_paging_awaken_cause(unsigned int *detected_times, unsigned char *detect_idx); // uc_lpm_paging_waken_cause_e
 
 unsigned int uc_wiota_get_curr_rf_cnt(void);
 
@@ -567,6 +596,11 @@ void uc_wiota_get_module_id(unsigned char *module_id);
 unsigned char uc_wiota_set_data_limit(unsigned char mode, unsigned short limit);
 
 unsigned short uc_wiota_get_data_limit(unsigned char mode);
+
+uc_uni_ack_mode_e uc_wiota_get_uni_ack_mode(void);
+
+void uc_wiota_set_recv_seq_mult_mode(unsigned char is_seq_mult);
+
 
 // below is about uboot
 void get_uboot_version(unsigned char *version);

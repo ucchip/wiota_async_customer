@@ -225,7 +225,7 @@ extern "C"
      * @brief  save static data to flash
      *
      */
-    void uc_wiota_save_static_info(void);
+    unsigned char uc_wiota_save_static_info(void);
 
     void uc_wiota_save_static_info_direct(void);
 

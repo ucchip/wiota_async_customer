@@ -1,5 +1,23 @@
 
 
+async v4.0
+A-v4.0
+
+关键更新：帧结构中去掉了preamble gap，提高了传输效率，但是新版本与之前版本不能直接通信，通过配置成老配置才能与老版本通信！
+
+1. 帧结构中去掉了preamble gap，提高了传输效率。
+2. 使用接口uc_wiota_set_data_rate，设置模式4（UC_RATE_PRM_GAP_MODE）和模式5（UC_RATE_OLD_UNI_MODE）都设置成1，即可与老版本通信。
+3. 增加UC_RATE_CRC_TYPE速率模式，可使得高阶mcs下每个数据子帧多3字节的承载量。
+4. 增加UC_RATE_UNI_ACK_MODE速率模式，可支持发单播不回复ack模式。
+5. 增加UC_RATE_FIRST_MCS_MODE速率模式，支持修改第一个控制子帧的mcs不固定为0。
+6. 增加us级别的帧长接口（uc_wiota_get_frame_len_us）。
+7. uc_wiota_get_paging_awaken_cause接口中增加被唤醒id的idx。
+8. 增加保存静态数据是否成功的反馈回调（UC_RECV_SAVE_STATIC_DONE）。
+9. mem.c编译修复。
+10. buliding.py更新，使得每次编译结果相同。
+11. 增加从OTP中读取功率曲线的功能，功率曲线不会被烧写时擦除。
+
+
 async v3.03_plus v3.01_plus
 A-v3.03_plus A-v3.01_plus
 
