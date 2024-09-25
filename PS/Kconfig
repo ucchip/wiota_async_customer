@@ -13,15 +13,38 @@ config _ALLOW_TRACE_PRITF_TEST_
     default y
 
 config UC8288_FACTORY
-    bool "factory mode,recv and send test, default close(UC8288_FACTORY)"
+    bool "at factory mode,recv and send test, default close(UC8288_FACTORY)"
     default n
 
 config _L1_FACTORY_FUNC_
-    bool "factory mode, default open(_L1_FACTORY_FUNC_)"
+    bool "l1 factory mode, default open(_L1_FACTORY_FUNC_)"
     default y
 
 config _CLK_GATING_
-    bool "clk gating, default open(_CLK_GATING_)"
+    bool "clk gating, default close(_CLK_GATING_)"
+    default n
+
+config _LPM_PAGING_
+    bool "lpm paging mode, default open(_LPM_PAGING_)"
     default y
 
+config _NARROW_BAND_
+    bool "narrow band mode, default open(_NARROW_BAND_)"
+    default y
+
+config _SUBFRAME_MODE_
+    bool "subframe mode(include two way mode), default open(_SUBFRAME_MODE_)"
+    default y
+
+config _OLD_UNI_MODE_
+    bool "old unicast mode, default open(_OLD_UNI_MODE_)"
+    default y
+
+config _NEW_UNI_MODE_
+    bool "new unicast mode, default open(_NEW_UNI_MODE_)"
+    default y
+
+config _BROADCAST_MODE_
+    bool "broadcast mode, default open(_BROADCAST_MODE_)"
+    default y
 endmenu

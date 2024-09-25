@@ -74,7 +74,9 @@ static at_result_t at_set_uboot_mode(const char *args)
     }
     set_uboot_mode(mode);
     rt_hw_interrupt_disable();
-    boot_riscv_reboot();
+	extern void reset_8288(void);
+	reset_8288();
+    // boot_riscv_reboot();
     return AT_RESULT_OK;
 }
 

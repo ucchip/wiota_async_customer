@@ -74,7 +74,7 @@ int onchip_flash_read(uint32_t offset, uint8_t* buf, uint32_t size)
         int_enable();
 
         read_data = BSWAP_32(read_data);
-        memcpy(&buf[index], &read_buf[addr_offset], order_len);
+        rt_memcpy(&buf[index], &read_buf[addr_offset], order_len);
 
         index += order_len;
     }
@@ -132,7 +132,7 @@ int onchip_flash_write(uint32_t offset, const uint8_t* buf, uint32_t size)
         {
             onchip_flash_read(write_addr, write_buf, 4);
         }
-        memcpy(&write_buf[addr_offset], &buf[index], order_len);
+        rt_memcpy(&write_buf[addr_offset], &buf[index], order_len);
         write_data = BSWAP_32(write_data);
 
         //level = rt_hw_interrupt_disable();
@@ -185,6 +185,7 @@ int onchip_flash_erase(uint32_t offset, uint32_t size)
         //level = rt_hw_interrupt_disable();
         int_disable();
         FlashEnableWr();
+        FlashWrite(0, 0, 0);
         FlashEraseSector(addr + index);
         //rt_hw_interrupt_enable(level);
         int_enable();

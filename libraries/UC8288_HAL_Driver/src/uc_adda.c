@@ -32,6 +32,7 @@
 #include "uc_adda.h"
 #include "uc_pulpino.h"
 #include "uc_event.h"
+#include "uc_wiota_api.h"
 
 #define _AUXDAC_BUFF_OUTPUT_EN 1
 
@@ -42,10 +43,35 @@
 #define BIT(x) (1 << (x))
 
 #ifdef RT_USING_ADC
+
+uint32_t adc_get_adj_result(uint32_t adc_ori)
+{
+    uc_adc_adj_t adc_adj = {0};
+    uc_wiota_get_adc_adj_info(&adc_adj);
+    if (!adc_adj.is_close && adc_adj.is_valid)
+    {
+        return adc_ori * adc_adj.adc_ka / 16384 + adc_adj.adc_mida;
+    }
+    return adc_ori;
+}
+
+void adc_open_avdd_cap_func(ADDA_TypeDef *ADDA)
+{
+    uc_adc_adj_t adc_adj = {0};
+    uc_wiota_get_adc_adj_info(&adc_adj);
+    if (!adc_adj.is_close && adc_adj.is_valid)
+    {
+        ADDA->ADC_CTRL0 |= 1 << 20; //OPEN AVDD_CAP
+        ADDA->ADC_CTRL1 &= ~(0xF << 17);
+        ADDA->ADC_CTRL1 |= (adc_adj.adc_trm << 17);
+    }
+}
+
 void temp_in_b_config(ADDA_TypeDef *ADDA)
 {
     ADDA->ADC_CTRL0 = 0x807F8E5A; //disable channel a, channel b, channel c and inside temp channel
     ADDA->ADC_CTRL1 = 0x20060000;
+    adc_open_avdd_cap_func(ADDA);
 }
 
 //static void avdd_cap_calibrate(ADDA_TypeDef* ADDA)
@@ -65,16 +91,17 @@ void adc_power_set(ADDA_TypeDef *ADDA)
     ADDA->ADC_CTRL0 &= ~(0x0F << 28);                                                                                  //disable channel a, channel b, channel c and inside temp channel
     ADDA->ADC_CTRL0 = BIT(21) | BIT(20) | BIT(19) | BIT(18) | BIT(17) | BIT(16) | BIT(15) | BIT(11) | BIT(6) | BIT(3); //|BIT(19);
 
-    ADDA->ADC_CTRL1 = 0x03 << 9; //signal attenuation 00: 1/4; 01: 1/2; 10: 1/3; 11: 1/1;
+    ADDA->ADC_CTRL1 |= 0x03 << 9; //signal attenuation 00: 1/4; 01: 1/2; 10: 1/3; 11: 1/1;
+    adc_open_avdd_cap_func(ADDA);
 
     REG(0x1A10A02C) = (REG(0x1A10A02C) & (~(0x0f << 12))) | (0xC << 12); //calibrate voltage
 }
 
-void temperature_set(ADDA_TypeDef *ADDA)
-{
-    ADDA->ADC_CTRL0 = 0x8AFF1080;
-    ADDA->ADC_CTRL1 = 0x0C540280; //0x0C340280 2 PT1000
-}
+// void temperature_set(ADDA_TypeDef* ADDA)
+// {
+//     ADDA->ADC_CTRL0 = 0x8AFF1080;
+//     ADDA->ADC_CTRL1 = 0x0C540280;  //0x0C340280 2 PT1000
+// }
 
 void adc_set_sample_rate(ADDA_TypeDef *ADDA, ADC_SAMPLE_RATE sample_rate)
 {
@@ -143,8 +170,8 @@ uint32_t adc_fifo_read(ADDA_TypeDef *ADDA)
     {
         adc_wait_data_ready(ADDA);
         adc_read(ADDA);
-        adc_sum += adc_read(ADDA);
-        adc_sum += adc_read(ADDA);
+        adc_sum += adc_get_adj_result(adc_read(ADDA));
+        adc_sum += adc_get_adj_result(adc_read(ADDA));
         adc_read(ADDA);
     }
 
@@ -162,8 +189,10 @@ void adc_watermark_set(ADDA_TypeDef *ADDA, uint8_t water_mark)
 void internal_temp_measure(ADDA_TypeDef *ADDA)
 {
     //ADDA->ADC_CTRL0 = 0x80FF8E42;
-    ADDA->ADC_CTRL0 = 0x80FF8E5A;
+    // ADDA->ADC_CTRL0 = 0x80FF8E5A;
+    ADDA->ADC_CTRL0 = 0x80FF8E58;
     ADDA->ADC_CTRL1 = 0xA0060000;
+    adc_open_avdd_cap_func(ADDA);
     REG(0x1A10A02C) = (REG(0x1A10A02C) & (~(0x0F << 12))) | (0xC << 12);
 }
 
@@ -186,7 +215,7 @@ void adc_fifo_clear(ADDA_TypeDef *ADDA)
 unsigned int adc_temp_read_times(ADDA_TypeDef *ADDA)
 {
     adc_read(ADDA);
-    return (unsigned int)adc_read(ADDA);
+    return (unsigned int)adc_get_adj_result(adc_read(ADDA));
 }
 
 signed int adc_temperature_read(ADDA_TypeDef *ADDA)
@@ -222,7 +251,7 @@ int adc_battery_voltage(ADDA_TypeDef *ADDA)
     for (adc = 0; adc < 64; adc++)
     {
         adc_wait_data_ready(ADDA);
-        adc += adc_read(ADDA);
+        adc += adc_get_adj_result(adc_read(ADDA));
     }
 
     adc_val = ((adc + (1 << 5)) >> 6); // div 64

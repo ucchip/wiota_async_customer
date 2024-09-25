@@ -186,7 +186,7 @@ extern "C"
      *
      * @return the auto connect flag (0 or 1)
      */
-    unsigned char uc_wiota_get_auto_connect_flag(void);
+    // unsigned char uc_wiota_get_auto_connect_flag(void);
 
     /**
      * @brief  get DTU config

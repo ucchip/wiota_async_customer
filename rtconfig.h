@@ -8,8 +8,8 @@
 
 #define RT_NAME_MAX 8
 #define RT_ALIGN_SIZE 4
-#define RT_THREAD_PRIORITY_8
-#define RT_THREAD_PRIORITY_MAX 8
+#define RT_THREAD_PRIORITY_32
+#define RT_THREAD_PRIORITY_MAX 32
 #define RT_TICK_PER_SECOND 1000
 #define RT_USING_OVERFLOW_CHECK
 #define RT_USING_HOOK
@@ -17,6 +17,9 @@
 #define RT_IDLE_HOOK_LIST_SIZE 3
 #define RT_TASK_RESOURCE_TOOL
 #define IDLE_THREAD_STACK_SIZE 512
+#define RT_USING_TIMER_SOFT
+#define RT_TIMER_THREAD_PRIO 4
+#define RT_TIMER_THREAD_STACK_SIZE 512
 
 /* kservice optimization */
 
@@ -112,6 +115,7 @@
 /* wiota APP */
 
 #define UC8288_MODULE
+#define _QUICK_CONNECT_
 #define _WATCHDOG_APP_
 
 /* wiota PS */
@@ -120,6 +124,11 @@
 #define _RT_THREAD_
 #define _ALLOW_TRACE_PRITF_TEST_
 #define _L1_FACTORY_FUNC_
-#define _CLK_GATING_
+#define _LPM_PAGING_
+#define _NARROW_BAND_
+#define _SUBFRAME_MODE_
+#define _OLD_UNI_MODE_
+#define _NEW_UNI_MODE_
+#define _BROADCAST_MODE_
 
 #endif

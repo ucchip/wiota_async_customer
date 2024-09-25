@@ -7,6 +7,8 @@
 #define LOG_TAG "drv.adc"
 #include <drv_log.h>
 
+extern uint32_t adc_get_adj_result(uint32_t adc_ori);
+
 static struct rt_adc_device uc8088_adc_device;
 
 static rt_err_t uc8288_adc_enabled(struct rt_adc_device *device, rt_uint32_t channel, rt_bool_t enabled)
@@ -27,7 +29,7 @@ static rt_err_t uc8288_adc_enabled(struct rt_adc_device *device, rt_uint32_t cha
             ADC_CHANNEL channel_val = ADC_CHANNEL_A;
             adc_power_set(UC_ADDA);
             adc_channel_select(UC_ADDA, channel_val);
-            adc_set_sample_rate(UC_ADDA, ADC_SR_45KSPS);
+            adc_set_sample_rate(UC_ADDA, ADC_SR_360KSPS);
             adc_fifo_clear(UC_ADDA);
             adc_watermark_set(UC_ADDA, 100);
             break;
@@ -37,7 +39,7 @@ static rt_err_t uc8288_adc_enabled(struct rt_adc_device *device, rt_uint32_t cha
             ADC_CHANNEL channel_val = ADC_CHANNEL_B;
             adc_power_set(UC_ADDA);
             adc_channel_select(UC_ADDA, channel_val);
-            adc_set_sample_rate(UC_ADDA, ADC_SR_45KSPS);
+            adc_set_sample_rate(UC_ADDA, ADC_SR_360KSPS);
             adc_fifo_clear(UC_ADDA);
             adc_watermark_set(UC_ADDA, 100);
             break;
@@ -47,7 +49,7 @@ static rt_err_t uc8288_adc_enabled(struct rt_adc_device *device, rt_uint32_t cha
             ADC_CHANNEL channel_val = ADC_CHANNEL_C;
             adc_power_set(UC_ADDA);
             adc_channel_select(UC_ADDA, channel_val);
-            adc_set_sample_rate(UC_ADDA, ADC_SR_45KSPS);
+            adc_set_sample_rate(UC_ADDA, ADC_SR_360KSPS);
             adc_fifo_clear(UC_ADDA);
             adc_watermark_set(UC_ADDA, 100);
             break;
@@ -57,7 +59,7 @@ static rt_err_t uc8288_adc_enabled(struct rt_adc_device *device, rt_uint32_t cha
             /* 采集电池电压 */
             ADC_CHANNEL channel_val = ADC_CHANNEL_BAT;
             adc_power_set(UC_ADDA);
-            adc_set_sample_rate(UC_ADDA, ADC_SR_45KSPS);
+            adc_set_sample_rate(UC_ADDA, ADC_SR_360KSPS);
             adc_watermark_set(UC_ADDA, 128);
             adc_channel_select(UC_ADDA, channel_val);
             adc_vbat_measure_enable(true);
@@ -85,7 +87,7 @@ static rt_err_t uc8288_adc_enabled(struct rt_adc_device *device, rt_uint32_t cha
             adc_channel_select(UC_ADDA, channel_val);
             adc_temp_sensor_enable(UC_ADDA, true);
             adc_temp_source_sel(UC_ADDA, ADC_TEMP_A1);
-            adc_set_sample_rate(UC_ADDA, ADC_SR_45KSPS);
+            adc_set_sample_rate(UC_ADDA, ADC_SR_360KSPS);
             adc_fifo_clear(UC_ADDA);
             adc_watermark_set(UC_ADDA, 100);
             break;
@@ -97,7 +99,7 @@ static rt_err_t uc8288_adc_enabled(struct rt_adc_device *device, rt_uint32_t cha
             adc_channel_select(UC_ADDA, channel_val);
             adc_temp_sensor_enable(UC_ADDA, true);
             adc_temp_source_sel(UC_ADDA, ADC_TEMP_A2);
-            adc_set_sample_rate(UC_ADDA, ADC_SR_45KSPS);
+            adc_set_sample_rate(UC_ADDA, ADC_SR_360KSPS);
             adc_fifo_clear(UC_ADDA);
             adc_watermark_set(UC_ADDA, 100);
             break;
@@ -184,7 +186,7 @@ static rt_err_t get_adc_value(struct rt_adc_device *device, rt_uint32_t channel,
         for (uint8_t index = 0; index < 100; index++)
         {
             adc_wait_data_ready(UC_ADDA);
-            adc_val += adc_read(UC_ADDA);
+            adc_val += adc_get_adj_result(adc_read(UC_ADDA));
         }
         *value = adc_val / 100;
     }

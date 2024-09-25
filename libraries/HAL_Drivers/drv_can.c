@@ -85,7 +85,7 @@ static rt_size_t rt_can_read(struct rt_device *dev,
     }
     CAN_Receive(UC_CAN_CRTL, &RxMessage);
 
-    memcpy(buffer, RxMessage.Data, RxMessage.DLC > size ? size : RxMessage.DLC);
+    rt_memcpy(buffer, RxMessage.Data, RxMessage.DLC > size ? size : RxMessage.DLC);
 
     return RxMessage.DLC;
 }

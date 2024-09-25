@@ -1,215 +1,269 @@
 
 
+async v4.1
+A-v4.1
+
+外部更新：
+    1. 增加快速配置功能，_QUICK_CONNECT_默认打开，在RT_USING_AT打开时使用该功能
+    2. 修改memset/memcpy为rt_memset/rt_memcpy
+    3. crt0.flash.S 增加pmc_init，修复休眠唤醒后可能的开机电流异常
+    4. 中断处理函数更新， default_int_handler, 防止中断漏检问题
+    5. boot_strap更新，增加qspi init，基带paging状态检测和恢复
+    6. 更新uboot.bin，包括开机异常处理等
+    7. 增加flash id获取接口，用于区分新老flash版本，并且兼容老版本flash接口
+    8. onchip_flash_erase中cache miss问题修复
+    9. 更新uboot.bin，包括开机异常处理，断电保护等
+    9. bintools更新
+    10. .gitignore更新，记得先清除本地跟踪 "git rm -r --chched ."
+
+协议接口更新：
+    1. 超低功耗唤醒扩展ID模式，uc_lpm_tx_cfg_t和uc_lpm_rx_cfg_t结构体中增加mode。
+    2. 增加状态回调类型，UC_RECV_PG_TX_DONE，发送完paging tx后通知app。
+    3. 增加adc校准计算，经过adc校准的模组，OTP中会有相关参数，默认在adc接口中直接使用，也可使用接口关闭该功能。adc采样率改为最高ADC_SR_360KSPS。
+    4. uc_wiota_set_freq_info 增加返回值，表示是否成功配置配点。
+    5. 去除auto_connect_flag。
+    6. 增加dcxo获取at，at_dcxo_query。
+    7. 增加功能宏区分，默认必须打开，对应目前完整协议栈库，仅用于裁剪版本编译（需要对应裁剪的协议栈库，另外提供）。
+    （_LPM_PAGING_，_NARROW_BAND_，_SUBFRAME_MODE_，_OLD_UNI_MODE_，_NEW_UNI_MODE_，_BROADCAST_MODE_）
+    8. 增加模组id的at，at_module_id_query
+
+协议内部更新：
+    1. 修复上一个版本通信问题，该版本（v4.1）可与之前版本（v4.0之前）在以下配置通信：单播，窄带（100K，50K，25K）。即V4.0该配置下均不能与其他版本通信。
+    2. 优化根据温度曲线计算dcxo的公式
+    3. 增加 l1_m/l1_f task堆栈空间到2K
+    4. 修复反复paging唤醒上千次出现的异常挂死问题，128 200K配置下。
+    5. 扩展ID唤醒，周期倍数不为1的异常处理
+    6. paging唤醒的200K 128 nlen为1的特殊配置下，检测周期的更新优化，v4.0该配置本身就有问题。
+    7. 对于特定数据解码异常问题的修复
+    8. 去掉初始化时可能存在的 ”写OTP操作“（风险项，写otp可能导致otp异常清除）
+    9. 增加量产测试cmd
+    10. 频点接收计算带宽更新为400K（射频计算相关，非频谱带宽）
+    11. 修复帧头dfe不准的bug
+    12. 双向内嵌pg tx功能
+    13. 读温度后，恢复adc配置
+    14. 基带对应功能更新
+    15. id mask范围更新，从 0~0xFFF 更新为 1~0xFFE，避免量产otp数据异常导致无法通信，默认值认为0x214
+
+    注意：
+    1. 扩展ID模式使用重点：
+        （1） 第二个唤醒ID仅支持与第一个唤醒ID相同周期
+        （2） 进休眠不能32K时钟降频
+        （3） paging tx的send time必须与paging rx的detect time相同
+        （4） 如需修改nlen，发送端也要配置相同的paging rx（为了统一，建议两端的tx和rx配置均一样）
+    2. 200K 128 3个子帧的双向有异常
+    3. 200K 128 3个子帧的指定帧头功能无法使用
+
+
 async v4.0
 A-v4.0
 
-1. 增加UC_RATE_PRM_GAP_MODE速率模式，默认为1，配置成0则会去掉帧结构中的preamble gap，提高了传输效率，开启方法：uc_wiota_set_data_rate(UC_RATE_PRM_GAP_MODE, 0)
-2. 增加UC_RATE_OLD_UNI_MODE速率模式，默认为1，默认为旧版单播模式，配置成0则会使得单播数据量增大，开启方法：uc_wiota_set_data_rate(UC_RATE_OLD_UNI_MODE, 0)
-3. 增加UC_RATE_CRC_TYPE速率模式，默认为0，配置成1则可使得高阶mcs下每个数据子帧多3字节的承载量。
-4. 增加UC_RATE_UNI_ACK_MODE速率模式，默认为1，配置成0则设置成发单播不回复ack模式。
-5. 增加UC_RATE_FIRST_MCS_MODE速率模式，默认为0，配置成1则配置成第一个控制子帧的mcs不固定为0，一般为(通用mcs-1)。
-6. 增加us级别的帧长接口（uc_wiota_get_frame_len_us）。
-7. uc_wiota_get_paging_awaken_cause接口中增加被唤醒id的idx。
-8. 增加保存静态数据是否成功的反馈回调（UC_RECV_SAVE_STATIC_DONE）。
-9. mem.c编译修复。
-10. buliding.py更新，使得每次编译结果相同。
-11. 增加从OTP中读取功率曲线的功能，功率曲线不会被烧写时擦除。
+    1. 增加UC_RATE_PRM_GAP_MODE速率模式，默认为1，配置成0则会去掉帧结构中的preamble gap，提高了传输效率，开启方法：uc_wiota_set_data_rate(UC_RATE_PRM_GAP_MODE, 0)
+    2. 增加UC_RATE_OLD_UNI_MODE速率模式，默认为1，默认为旧版单播模式，配置成0则会使得单播数据量增大，开启方法：uc_wiota_set_data_rate(UC_RATE_OLD_UNI_MODE, 0)
+    3. 增加UC_RATE_CRC_TYPE速率模式，默认为0，配置成1则可使得高阶mcs下每个数据子帧多3字节的承载量。
+    4. 增加UC_RATE_UNI_ACK_MODE速率模式，默认为1，配置成0则设置成发单播不回复ack模式。
+    5. 增加UC_RATE_FIRST_MCS_MODE速率模式，默认为0，配置成1则配置成第一个控制子帧的mcs不固定为0，一般为(通用mcs-1)。
+    6. 增加us级别的帧长接口（uc_wiota_get_frame_len_us）。
+    7. uc_wiota_get_paging_awaken_cause接口中增加被唤醒id的idx。
+    8. 增加保存静态数据是否成功的反馈回调（UC_RECV_SAVE_STATIC_DONE）。
+    9. mem.c编译修复。
+    10. buliding.py更新，使得每次编译结果相同。
+    11. 增加从OTP中读取功率曲线的功能，功率曲线不会被烧写时擦除。
 
-注意：该版本（v4.0）与之前版本（v4.0之前）通信，在以下配置无法通信： 单播，窄带（100K，50K，25K），该问题会在下个版本(v4.1)解决。
+    注意：该版本（v4.0）与之前版本（v4.0之前）通信，在以下配置无法通信： 单播，窄带（100K，50K，25K），该问题会在下个版本(v4.1)解决。
 
 
 async v3.03_plus v3.01_plus
 A-v3.03_plus A-v3.01_plus
 
-1. 增加从OTP中读取功率曲线的功能，功率曲线不会被烧写时擦除。
-2. 本次仅更新库和固件，库需要在对应tag节点使用。
+    1. 增加从OTP中读取功率曲线的功能，功率曲线不会被烧写时擦除。
+    2. 本次仅更新库和固件，库需要在对应tag节点使用。
 
 
 async v3.03
 A-v3.03
 
-1. paging at的timouet、freq范围修正
-2. 增加开机及收到数据时的gpio脉冲通知功能，静态数据中设备信息对应更新，新增at/api
-3. subsys id 的高12bit，测试版本默认固定为0x214, 32bit的整体默认值仍为0x21456981，（重要！）
-4. 从otp中获取温度曲线，防止flash中的曲线被擦除导致的异常，ucm200s模组特别注意！
-5. 增加根据温度计算并配置dcxo的接口。
-6. 应用可配置单次传输最大值。
-7. link file编译优化。
+    1. paging at的timouet、freq范围修正
+    2. 增加开机及收到数据时的gpio脉冲通知功能，静态数据中设备信息对应更新，新增at/api
+    3. subsys id 的高12bit，测试版本默认固定为0x214, 32bit的整体默认值仍为0x21456981，（重要！）
+    4. 从otp中获取温度曲线，防止flash中的曲线被擦除导致的异常，ucm200s模组特别注意！
+    5. 增加根据温度计算并配置dcxo的接口。
+    6. 应用可配置单次传输最大值。
+    7. link file编译优化。
 
 
 async v3.02
 A-v3.02
 
-1. 规范c标准变量类型及命名
-2. 超低功耗唤醒支持同时检测第二个唤醒id
-3. 增加获取module id接口
-4. 增加wiota init/run/exit的切换中间态，获取运行状态接口
-5. 增加ack信息位功能
-6. 增加双向帧结构功能
-7. 增加gating相关接口
-8. 增加根据当前数据量和mcs计算匹配的子帧数的接口
-9. 增加主动等待接收数据接口
-10. 注意rt-thread库文件的更新
+    1. 规范c标准变量类型及命名
+    2. 超低功耗唤醒支持同时检测第二个唤醒id
+    3. 增加获取module id接口
+    4. 增加wiota init/run/exit的切换中间态，获取运行状态接口
+    5. 增加ack信息位功能
+    6. 增加双向帧结构功能
+    7. 增加gating相关接口
+    8. 增加根据当前数据量和mcs计算匹配的子帧数的接口
+    9. 增加主动等待接收数据接口
+    10. 注意rt-thread库文件的更新
 
 
 async v3.01
 A-v3.01
 
-1. 优化单播传输成功率
-2. 增加单播ack自动功率控制接口（默认打开时，ack功率比发送端功率高0~5dbm，关闭时，使用本地配置功率）
-3. 增加suspend/recover接口，用于避免wiota运行和读写flash的冲突
-4. 获取paging唤醒原因接口中，增加唤醒检测次数
-5. 模组ID打印
-6. 温度adc接口更新，在uc_adda.c文件中
-7. 增加了协议栈代码空间
-8. 200K带宽的帧头gap减小 
+    1. 优化单播传输成功率
+    2. 增加单播ack自动功率控制接口（默认打开时，ack功率比发送端功率高0~5dbm，关闭时，使用本地配置功率）
+    3. 增加suspend/recover接口，用于避免wiota运行和读写flash的冲突
+    4. 获取paging唤醒原因接口中，增加唤醒检测次数
+    5. 模组ID打印
+    6. 温度adc接口更新，在uc_adda.c文件中
+    7. 增加了协议栈代码空间
+    8. 200K带宽的帧头gap减小 
 
 
 async v3.00
 A-v3.00
 
-1. 新增获取dcxo值的接口
-2. 可在运行过程中动态配置子网id的接口
-3. 新增获取tx mode的接口
-4. 新增单独配置是否需要外部唤醒的接口
-5. 修复单播ack的功率问题
-6. 修复定时器与回调冲突问题
-7. 优化收发切换耗时
-8. 修复sleep可能无法成功的问题
-9. 修复cs awaken cause保存问题
-10. 增加resource test，可查看资源使用情况
+    1. 新增获取dcxo值的接口
+    2. 可在运行过程中动态配置子网id的接口
+    3. 新增获取tx mode的接口
+    4. 新增单独配置是否需要外部唤醒的接口
+    5. 修复单播ack的功率问题
+    6. 修复定时器与回调冲突问题
+    7. 优化收发切换耗时
+    8. 修复sleep可能无法成功的问题
+    9. 修复cs awaken cause保存问题
+    10. 增加resource test，可查看资源使用情况
 
 
 async v2.9
 A-v2.9
 
-1. 更新按指定帧头发送数据功能，及上报收到数据的第一帧帧头rf counter
-2. 更新低功耗LE模组的功率曲线，0a6g模组功率曲线
-3. 修改api名字，uc_wiota_get_physical_status
-4. 频点规则更新，频点间隔(不再是固定的200KHz)与带宽相同，更新为16bits类型
-5. 子帧数为3的单播数据异常问题修复
-6. 频段1范围更新为400M~470M
-7. uboot更新，默认配置及打印更新
-8. otp write cache miss问题修复
-9. 根据输入配置参数计算帧长
-10. 超低功耗唤醒支持窄带配置，支持最大次数自动醒来
-11. 唤醒原因api，paging唤醒原因api
-12. 接收数据的猜频偏bug修复
-13. 超低功耗唤醒配置、频点保存到静态数据
-14. 串口初始化时，先清空buf
+    1. 更新按指定帧头发送数据功能，及上报收到数据的第一帧帧头rf counter
+    2. 更新低功耗LE模组的功率曲线，0a6g模组功率曲线
+    3. 修改api名字，uc_wiota_get_physical_status
+    4. 频点规则更新，频点间隔(不再是固定的200KHz)与带宽相同，更新为16bits类型
+    5. 子帧数为3的单播数据异常问题修复
+    6. 频段1范围更新为400M~470M
+    7. uboot更新，默认配置及打印更新
+    8. otp write cache miss问题修复
+    9. 根据输入配置参数计算帧长
+    10. 超低功耗唤醒支持窄带配置，支持最大次数自动醒来
+    11. 唤醒原因api，paging唤醒原因api
+    12. 接收数据的猜频偏bug修复
+    13. 超低功耗唤醒配置、频点保存到静态数据
+    14. 串口初始化时，先清空buf
 
 
 async v2.8
 A-v2.8
 
-1. 更新app驱动demo
-2. 修复paging tx和数据发送bug
-3. 按子帧发送api更新
-4. at波特率设置并保存进静态数据
-5. spi cs唤醒bug修复（uc_boot_strap.c更新！）
-6. 唤醒原因接口
-7. 外部32K晶振设置api
-8. license功能更新，暂未启用
-9. 指定帧头发送数据功能，上报接收时刻子帧边界
-10. 语音数据加速功能
-11. 获取rf状态api更新
-12. 获取当前时刻rf counter
+    1. 更新app驱动demo
+    2. 修复paging tx和数据发送bug
+    3. 按子帧发送api更新
+    4. at波特率设置并保存进静态数据
+    5. spi cs唤醒bug修复（uc_boot_strap.c更新！）
+    6. 唤醒原因接口
+    7. 外部32K晶振设置api
+    8. license功能更新，暂未启用
+    9. 指定帧头发送数据功能，上报接收时刻子帧边界
+    10. 语音数据加速功能
+    11. 获取rf状态api更新
+    12. 获取当前时刻rf counter
 
 
 async v2.7
 A-v2.7
 
-1. 接收单播数据结果中增加分包大小和发送端功率
-2. 物理层是否IDLE态查询接口
-3. 优化低功耗时的数据接收成功率
-4. 超低功耗唤醒配置，增加extra period设置，可额外继续sleep一段时间
-5. 修复超低功耗唤醒和RTC定时唤醒混用bug
-6. 修复基带数据mask异常bug
+    1. 接收单播数据结果中增加分包大小和发送端功率
+    2. 物理层是否IDLE态查询接口
+    3. 优化低功耗时的数据接收成功率
+    4. 超低功耗唤醒配置，增加extra period设置，可额外继续sleep一段时间
+    5. 修复超低功耗唤醒和RTC定时唤醒混用bug
+    6. 修复基带数据mask异常bug
 
 async 2.6
 A-v2.6
 
-1. PAGING功能支持，详见异步API/AT文档中低功耗相关内容
-2. device测试demo
-3. init之前设置freq的bug修复，run之后可设置频点
-4. 增加协议栈task stack空间
-5. 基带窄带数据更新
-6. bc round设置范围更新为1~8
-7. 工厂测试bug修复，OTP更新等
-8. 基带状态检测，异常重启基带并上报给应用
-9. 帧长计算更新
-10. 对应基带版本更新
+    1. PAGING功能支持，详见异步API/AT文档中低功耗相关内容
+    2. device测试demo
+    3. init之前设置freq的bug修复，run之后可设置频点
+    4. 增加协议栈task stack空间
+    5. 基带窄带数据更新
+    6. bc round设置范围更新为1~8
+    7. 工厂测试bug修复，OTP更新等
+    8. 基带状态检测，异常重启基带并上报给应用
+    9. 帧长计算更新
+    10. 对应基带版本更新
 
 
 async 2.5
 A-v2.5
 
-1. OTP功能更新，校准数据不会被擦除
-2. 增加快速扫频功能，返回RSSI列表
-3. 温度曲线更新
-4. rtthread at bug
-5. 基带挂死检测和自动reset功能
-6. 打开bit加扰功能，数据全0也可传输
-7. 900M频点频偏bug修复
-8. 基带测试bug修复
-9. 完成单播/广播接收后快速停止接收过程优化
-10. 基带版本更新
+    1. OTP功能更新，校准数据不会被擦除
+    2. 增加快速扫频功能，返回RSSI列表
+    3. 温度曲线更新
+    4. rtthread at bug
+    5. 基带挂死检测和自动reset功能
+    6. 打开bit加扰功能，数据全0也可传输
+    7. 900M频点频偏bug修复
+    8. 基带测试bug修复
+    9. 完成单播/广播接收后快速停止接收过程优化
+    10. 基带版本更新
 
 
 async 2.4
 A-v2.4
 
-1. uc_boot_strap.c中增加分频比的初始化
-2. 单播重发次数api
-3. 广播head data改为2字节
-4. 协议栈初始化启动时间缩短
-5. 数据发送长度限制更新，广播1021 bytes，单播310 bytes
-6. 非全接收模式，改为在接收侧配置
-7. 广播时，每个子帧的承载应用数据量增加2bytes
-8. uc_wiota_get_subframe_data_len接口更新
-9. 单播接收侧的ack发送功率与发送侧一致
+    1. uc_boot_strap.c中增加分频比的初始化
+    2. 单播重发次数api
+    3. 广播head data改为2字节
+    4. 协议栈初始化启动时间缩短
+    5. 数据发送长度限制更新，广播1021 bytes，单播310 bytes
+    6. 非全接收模式，改为在接收侧配置
+    7. 广播时，每个子帧的承载应用数据量增加2bytes
+    8. uc_wiota_get_subframe_data_len接口更新
+    9. 单播接收侧的ack发送功率与发送侧一致
 
 
 async 2.3
 A-v2.3
 
-1. 接收停止接口更新，UC_AUTO_RECV_STOP会直接停止正在接收的数据和状态；
-2. 发送数据接口的timer bug修复；
-3. 校准模式支持，AT+WIOTADJUST；
-4. 将带宽设置，移入系统配置接口；
-5. 接收数据上报结构体，增加rssi和snr；
-6. mcs6/7的传输bug修改；
-7. 用户发送广播时，可额外增加3字节的数据头，该数据头99.99%的正确率；
-8. 基带版本更新，协议栈其他内部更新。
+    1. 接收停止接口更新，UC_AUTO_RECV_STOP会直接停止正在接收的数据和状态；
+    2. 发送数据接口的timer bug修复；
+    3. 校准模式支持，AT+WIOTADJUST；
+    4. 将带宽设置，移入系统配置接口；
+    5. 接收数据上报结构体，增加rssi和snr；
+    6. mcs6/7的传输bug修改；
+    7. 用户发送广播时，可额外增加3字节的数据头，该数据头99.99%的正确率；
+    8. 基带版本更新，协议栈其他内部更新。
 
 
 async 2.2
 A-v2.2
 
-1. 保存静态数据接口问题解决
-2. 低功耗demo
-3. uc_wiota_set_wait_cnt改为uc_wiota_set_detect_time，参数单位ms
-4. 降频时的系统timer更新
+    1. 保存静态数据接口问题解决
+    2. 低功耗demo
+    3. uc_wiota_set_wait_cnt改为uc_wiota_set_detect_time，参数单位ms
+    4. 降频时的系统timer更新
 
 
 async 2.1
 A-v2.1
 
-1. 协议栈状态API更新
-2. 广播包version的bug修复
-3. 频点可在协议栈启动后设置
-4. 子帧数大于8时的bug修复
-5. 发送数据API中的timeout改为32bit
+    1. 协议栈状态API更新
+    2. 广播包version的bug修复
+    3. 频点可在协议栈启动后设置
+    4. 子帧数大于8时的bug修复
+    5. 发送数据API中的timeout改为32bit
 
 
 async 2.0
 A-v2.0
 
-1. 发送数据的协议栈缓存队列设为2，发送超出发送队列长度会直接发返回QUEUE_FULL
-2. 系统配置增加zc_num，低功耗降压降频需要特殊配置，默认为8
-3. 增加低功耗，降压降频，sleep等接口
-4. 自动接收控制开关，关闭时，协议栈不会主动监测帧头和接收数据
-5. 功率设置增加在静态数据中，修复run之前设置功率不生效的问题
-6. 错误包上报接口，由发送方设置，指示是否需要接收方接收错误包
+    1. 发送数据的协议栈缓存队列设为2，发送超出发送队列长度会直接发返回QUEUE_FULL
+    2. 系统配置增加zc_num，低功耗降压降频需要特殊配置，默认为8
+    3. 增加低功耗，降压降频，sleep等接口
+    4. 自动接收控制开关，关闭时，协议栈不会主动监测帧头和接收数据
+    5. 功率设置增加在静态数据中，修复run之前设置功率不生效的问题
+    6. 错误包上报接口，由发送方设置，指示是否需要接收方接收错误包
 
 

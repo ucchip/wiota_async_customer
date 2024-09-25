@@ -393,7 +393,7 @@ static rt_uint32_t uc8088_spi_spixfer(struct rt_spi_device *device, struct rt_sp
                     order_size = send_length - offset;
                 }
                 data_len = order_size * 8;
-                memset(data_buf, 0x00, 32);
+                rt_memset(data_buf, 0x00, 32);
                 for (index = 0; index < order_size; index++)
                 {
                     data_buf[(index / 4) * 4 + (3 - index % 4)] = send_buf[index];
@@ -413,7 +413,7 @@ static rt_uint32_t uc8088_spi_spixfer(struct rt_spi_device *device, struct rt_sp
                 spim_start_transaction(UC_SPIM, SPIM_CMD_WR, SPIM_CSN0);
                 while ((spim_get_status(UC_SPIM) & 0xFFFF) != 1)
                     ;
-                memset(data_buf, 0xff, 32);
+                rt_memset(data_buf, 0xff, 32);
 #ifdef BSP_SPIM_RX_USING_DMA
                 Udma_Spim_Rx(UC_SPIM, (uint32_t *)data_buf, data_len / 4);
 #else
@@ -460,7 +460,7 @@ static rt_uint32_t uc8088_spi_spixfer(struct rt_spi_device *device, struct rt_sp
                     order_size = send_length - offset;
                 }
                 data_len = order_size * 8;
-                memset(data_buf, 0x00, 32);
+                rt_memset(data_buf, 0x00, 32);
                 for (index = 0; index < order_size; index++)
                 {
                     data_buf[(index / 4) * 4 + (3 - index % 4)] = send_buf[index];
@@ -506,7 +506,7 @@ static rt_uint32_t uc8088_spi_spixfer(struct rt_spi_device *device, struct rt_sp
                     order_size = send_length - offset;
                 }
                 data_len = order_size * 8;
-                memset(data_buf, 0xff, 32);
+                rt_memset(data_buf, 0xff, 32);
                 spim_set_datalen(UC_SPIM, data_len);
                 //spim_start_transaction(UC_SPIM,SPIM_CMD_RD, cs->GPIO_Pin);
                 spim_start_transaction(UC_SPIM, SPIM_CMD_RD, SPIM_CSN0);

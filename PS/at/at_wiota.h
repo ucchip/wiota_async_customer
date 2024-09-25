@@ -11,5 +11,7 @@ enum at_wiota_state
 
 void at_wiota_set_state(int state);
 int at_wiota_get_state(void);
-
+#ifdef _QUICK_CONNECT_
+void wiota_recv_callback(uc_recv_back_p data);
+#endif
 #endif

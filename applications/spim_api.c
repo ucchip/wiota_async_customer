@@ -90,7 +90,7 @@ struct rt_spi_device* spim_api_init(char *name, int gpio_pin, unsigned int clk)
         cfg.data_width = 8;
         cfg.mode = RT_SPI_MASTER | RT_SPI_MODE_0 | RT_SPI_MSB;
         // 6M can catch by logic analyzer. Maybe can set up to 20M, should be test in future.
-        cfg.max_hz = clk;       
+        cfg.max_hz = clk;
         rt_err_t err = rt_spi_configure(spi_dev, &cfg);
         if (err != RT_EOK)
         {
@@ -150,7 +150,7 @@ void flash_erase(struct rt_spi_device *dev, int nStartAddr, int nEraseSize)
     {
         nEraseSize = RT_ALIGN(nEraseSize, FLASH_SECTOR_SIZE);
         nStartAddr = ((nStartAddr >> 12) << 12);
-        
+
         while (nWrCnt < nEraseSize)
         {
             if ((nEraseSize - nWrCnt) < STEP_32KB)
@@ -214,7 +214,7 @@ void flash_page_program(struct rt_spi_device *dev,
         {
             return;
         }
-        memcpy(wData, pData, nDataSize);
+        rt_memcpy(wData, pData, nDataSize);
         ByteSwap(wData, nDataSize);
     }
     for (i = 0; i < nDataSize;)
@@ -289,10 +289,10 @@ struct rt_spi_message *flash_write(struct rt_spi_device *dev,
 }
 
 struct rt_spi_message *flash_read(struct rt_spi_device *dev,
-                                  void *dataOut, 
-                                  int nLenOut, 
-                                  uint8_t nCmd, 
-                                  int nAddr, 
+                                  void *dataOut,
+                                  int nLenOut,
+                                  uint8_t nCmd,
+                                  int nAddr,
                                   int nAddrLen)
 {
     struct rt_spi_message *res = spim_api_read(dev, dataOut, nLenOut, nCmd, nAddr, nAddrLen);
@@ -340,7 +340,7 @@ struct rt_spi_message *spim_api_mem_read(struct rt_spi_device *dev, void *dataOu
     cmdAddr[2] = (nAddr >> 16) & 0xFF;
     cmdAddr[3] = (nAddr >>  8) & 0xFF;
     cmdAddr[4] = nAddr & 0xFF;
-    
+
     // send
     msgMOSI.send_buf = cmdAddr;
     msgMOSI.recv_buf = RT_NULL;
@@ -385,7 +385,7 @@ struct rt_spi_message *spim_api_mem_read(struct rt_spi_device *dev, void *dataOu
 
     s_cmdAddr.u32Val[0] = ((SPIM_OP_MEM_READ << 24) | ((nAddr >> 8) & 0x00FFFFFF));
     s_cmdAddr.u8Val[7] = nAddr & 0xFF;
-    
+
     // send
     msgMOSI.send_buf = &s_cmdAddr;
     msgMOSI.recv_buf = RT_NULL;
@@ -434,7 +434,7 @@ int spim_api_set_mode(struct rt_spi_device *dev, int nMode)
     {
         spim_api_write(dev, 0xFF, nMode, 4, RT_NULL, 0);
         nCnt++;
-    } 
+    }
     if (nCnt > 1000)
     {
         rt_kprintf("spim_set_mode() error\n");
@@ -525,7 +525,7 @@ struct rt_spi_message *spim_api_write(struct rt_spi_device *dev, uint8_t nCmd, i
 
     rt_set_errno(RT_EOK);
     struct rt_spi_message *res = rt_spi_transfer_message(dev, &msgCmdAddr);
-    
+
     return res;
 }
 
@@ -539,7 +539,7 @@ struct rt_spi_message *spim_api_read(struct rt_spi_device *dev, void *dataOut, i
     }
 
     struct rt_spi_message msgMOSI, msgMISO;
-    
+
     rt_memset(&s_cmdAddr, 0, sizeof(spi_cmd_addr));
 
     switch (nAddrLen)

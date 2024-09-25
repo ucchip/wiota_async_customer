@@ -21,8 +21,6 @@
 #ifdef RT_USING_AT
 #include "at.h"
 #endif
-#else
-#include "test_wiota_api.h"
 #endif
 
 #ifdef _WATCHDOG_APP_
@@ -79,6 +77,10 @@
 
 #ifdef RT_TASK_RESOURCE_TOOL
 #include "resource_manager.h"
+#endif
+
+#ifdef _QUICK_CONNECT_
+#include "quick_connect.h"
 #endif
 
 #include "uc_wiota_static.h"
@@ -182,10 +184,6 @@ int main(void)
         uc_wiota_factory_task_init();
         #endif
     }
-#else
-#ifdef WIOTA_API_TEST
-    app_task_init();
-#endif
 #endif
 
     at_wiota_gpio_report_init();
@@ -203,14 +201,16 @@ int main(void)
 //    at_handle_log_uart(0);
 #endif
 
-    // app_task_init();
-
     // app_test_aync_relay_init();
 
     //    uc_wiota_light_func_enable(0);
 
     // rt_kprintf("before while\n");
     app_device_demo();
+
+#ifdef _QUICK_CONNECT_
+    quick_connect_task_init();
+#endif
 
     while (1)
     {

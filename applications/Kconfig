@@ -4,9 +4,9 @@ config UC8288_MODULE
     bool "use at cmd, default open(UC8288_MODULE)"
     default y
 
-config WIOTA_API_TEST
-    bool "wiota ap test task, default close(WIOTA_API_TEST)"
-    default n
+config _QUICK_CONNECT_
+    bool "open quick connect, default open(_QUICK_CONNECT_)"
+    default y
 
 if RT_USING_ADC
     config _ADC_APP_
