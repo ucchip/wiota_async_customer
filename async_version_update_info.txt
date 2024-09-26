@@ -9,10 +9,9 @@ A-v4.1
     3. crt0.flash.S 增加pmc_init，修复休眠唤醒后可能的开机电流异常
     4. 中断处理函数更新， default_int_handler, 防止中断漏检问题
     5. boot_strap更新，增加qspi init，基带paging状态检测和恢复
-    6. 更新uboot.bin，包括开机异常处理等
+    6. 更新uboot.bin，包括开机异常处理，断电保护等
     7. 增加flash id获取接口，用于区分新老flash版本，并且兼容老版本flash接口
     8. onchip_flash_erase中cache miss问题修复
-    9. 更新uboot.bin，包括开机异常处理，断电保护等
     9. bintools更新
     10. .gitignore更新，记得先清除本地跟踪 "git rm -r --chched ."
 
