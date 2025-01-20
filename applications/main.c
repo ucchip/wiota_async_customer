@@ -89,8 +89,13 @@
 #if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
 extern void at_handle_log_uart(int uart_number);
 #endif
+
+#ifdef RT_USING_AT
+#ifdef UC8288_MODULE
 extern int at_wiota_gpio_report_init(void);
 extern int wake_out_pulse_init(void);
+#endif
+#endif
 
 // extern void at_wiota_manager(void);
 
@@ -186,8 +191,12 @@ int main(void)
     }
 #endif
 
+#ifdef RT_USING_AT
+#ifdef UC8288_MODULE
     at_wiota_gpio_report_init();
     wake_out_pulse_init();
+#endif
+#endif
 
 #ifdef WIOTA_RELAY_APP
     extern int uc_wiota_relay_app_init(void);

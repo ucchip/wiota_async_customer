@@ -14,7 +14,7 @@ src += Glob('app/src/*.c')
 src += Glob('at/*.c')
 
 
-lib = ['libwin_wiota_dev']
+lib = ['libwin_wiota_dev_v4.2']
 libpath = [cwd + '/lib']
 
 group = DefineGroup('PS', src, depend = [''], CPPPATH = path, LIBS = lib, LIBPATH = libpath)

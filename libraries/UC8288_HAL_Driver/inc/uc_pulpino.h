@@ -259,8 +259,8 @@ typedef struct
 {
     __IO   uint32_t     PADMUX;
     const  uint32_t     RESERVED[7];
-    __IO   uint32_t     PADCFG;
-    const  uint32_t     RESERVED1[15];
+    __IO   uint32_t     PADCFG[4];
+    const  uint32_t     RESERVED1[12];
     __IO   uint32_t     PADMUX1;
 } GPIO_CFG_TypeDef;
 
@@ -308,7 +308,7 @@ typedef struct{
 
 typedef struct
 {
- 
+
   __IO uint32_t FR0;
   __IO uint32_t FR1;
   __IO uint32_t FR2;

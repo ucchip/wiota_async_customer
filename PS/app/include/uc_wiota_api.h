@@ -15,10 +15,10 @@
 // #define WIOTA_FREQUENCE_STEP 20
 
 // unit is 10Hz, accuracy is also 10Hz
-// like freq_idx is 100, base_freq is 47000000 (470M), band_width is 20000 (200KHz), calc result is 49000000
-#define WIOTA_FREQUENCE_POINT(freq_idx, base_freq, band_width) (base_freq + freq_idx * band_width)
+// like freq_idx is 100, base_freq is 47000000 (470M), freq_spacing is 20000 (200KHz), calc result is 49000000
+#define WIOTA_FREQUENCE_POINT(freq_idx, base_freq, freq_spacing) (base_freq + freq_idx * freq_spacing)
 
-#define WIOTA_FREQUENCE_INDEX(freq, base_freq, band_width) ((freq - base_freq) / band_width)
+#define WIOTA_FREQUENCE_INDEX(freq, base_freq, freq_spacing) ((freq - base_freq) / freq_spacing)
 
 #define CRC16_LEN 2
 
@@ -73,6 +73,7 @@ typedef enum
     UC_OP_PART_SUCC,
     UC_OP_CRC_FAIL,
     UC_OP_QUEUE_FULL,
+    UC_OP_MEM_ERR,
 } uc_op_result_e;
 
 typedef enum
@@ -228,6 +229,34 @@ typedef enum
     PRM_GAP_UNVALID,
 } uc_prm_gap_mode_e;
 
+typedef enum
+{
+    BAND_WIDTH_400KHZ = 0, // not support
+    BAND_WIDTH_200KHZ,     // 1
+    BAND_WIDTH_100KHZ,     // 2
+    BAND_WIDTH_50KHZ,      // 3
+    BAND_WIDTH_25KHZ,      // 4
+    BAND_WIDTH_12P5KHZ,    // 5
+    BAND_WIDTH_6P25KHZ,    // 6, not support
+    BAND_WIDTH_MAX,        // 7
+} uc_band_width_e;
+
+typedef enum
+{
+    FREQ_SPACING_400KHZ = 0, // if set 0, use bandwidth
+    FREQ_SPACING_200KHZ,     // 1
+    FREQ_SPACING_100KHZ,     // 2
+    FREQ_SPACING_50KHZ,      // 3
+    FREQ_SPACING_25KHZ,      // 4
+    FREQ_SPACING_12P5KHZ,    // 5
+    FREQ_SPACING_6P25KHZ,    // 6
+    FREQ_SPACING_5KHZ,       // 7
+    FREQ_SPACING_500HZ,      // 8
+    FREQ_SPACING_2P5HZ,      // 9
+    FREQ_SPACING_100HZ,      // 10
+    FREQ_SPACING_MAX,        // 11
+} uc_freq_spacing_e;
+
 typedef struct
 {
     unsigned char rssi; // absolute value, 0~150, always negative
@@ -243,13 +272,13 @@ typedef struct
 
 typedef struct
 {
-    char reserved0;
+    unsigned char freqSpacing;   // default 0, use bandwidth, else use uc_freq_spacing_e
     unsigned char id_len;        // 0: 2, 1: 4, 2: 6, 3: 8
     unsigned char pp;            // 0: 1, 1: 2, 2: 4, 3: not use
     unsigned char symbol_length; // 0: 128, 1: 256, 2: 512, 3: 1024
     unsigned char pz;            // default 8
     unsigned char btvalue;       // bt from rf 1: 0.3, 0: 1.2
-    unsigned char bandwidth;     // default 1, 200KHz
+    unsigned char bandwidth;     // default 1, 200KHz, uc_band_width_e
     unsigned char spectrum_idx;  // default 3, 470M~510M;
                                  // unsigned int systemId; // no use !
     unsigned short freq_idx;     // freq idx
@@ -385,12 +414,14 @@ typedef struct
 
 typedef struct
 {
-    unsigned char is_close;  // default 0, can set 1, then not use adj
-    unsigned char is_valid;  // if got valid data from factory test
-    unsigned char adc_trm;   // adc config
-    unsigned char reserved;  // re
-    unsigned short adc_ka;   // adc calc
-    unsigned short adc_mida; // adc calc
+    unsigned char is_close; // default 0, can set 1, then not use adj
+    unsigned char is_valid; // if got valid data from factory test
+    unsigned char adc_trm;  // adc config
+    unsigned char reserved; // re
+    unsigned short adc_ka;  // adc calc
+    short adc_mida;         // adc calc
+    unsigned short adc_kb;  // adc calc
+    short adc_midb;         // adc calc
 } uc_adc_adj_t, *uc_adc_adj_p;
 
 typedef void (*uc_recv)(uc_recv_back_p recv_data);
@@ -398,7 +429,8 @@ typedef void (*uc_send)(uc_send_back_p send_result);
 
 extern unsigned char factory_msg_handler(signed int subtype, signed int value);
 
-void uc_wiota_get_version(unsigned char *wiota_version, unsigned char *git_info, unsigned char *time, unsigned int *cce_version);
+void uc_wiota_get_version(unsigned char *wiota_version, unsigned char *git_info,
+                          unsigned char *time, unsigned int *cce_version);
 
 unsigned char uc_wiota_execute_state(void);
 
@@ -410,7 +442,7 @@ void uc_wiota_exit(void);
 
 uc_wiota_status_e uc_wiota_get_state(void);
 
-void uc_wiota_set_dcxo(unsigned int dcxo);
+unsigned char uc_wiota_set_dcxo(unsigned int dcxo);
 
 unsigned int uc_wiota_get_dcxo(void);
 
@@ -420,7 +452,7 @@ unsigned char uc_wiota_set_freq_info(unsigned short freq_idx);
 
 unsigned short uc_wiota_get_freq_info(void);
 
-void uc_wiota_set_subsystem_id(unsigned int subsystemid);
+unsigned char uc_wiota_set_subsystem_id(unsigned int subsystemid);
 
 unsigned int uc_wiota_get_subsystem_id(void);
 
@@ -430,7 +462,8 @@ void uc_wiota_get_system_config(sub_system_config_t *config);
 
 void uc_wiota_get_radio_info(radio_info_t *radio);
 
-uc_op_result_e uc_wiota_send_data(unsigned int userId, unsigned char *data, unsigned short len, unsigned char *bcHead, unsigned char headLen, unsigned int timeout, uc_send callback);
+uc_op_result_e uc_wiota_send_data(unsigned int userId, unsigned char *data, unsigned short len,
+                                  unsigned char *bcHead, unsigned char headLen, unsigned int timeout, uc_send callback);
 
 void uc_wiota_recv_data(uc_recv_back_p recv_result, unsigned short timeout, unsigned int userId, uc_recv callback);
 
@@ -442,14 +475,14 @@ void uc_wiota_set_lpm_mode(unsigned char lpm_mode);
 // not support gating func
 void uc_wiota_set_is_gating(unsigned char is_gating, unsigned char is_subrecv);
 void uc_wiota_set_gating_config(unsigned int timeout, unsigned int period); // second, micro second
-void uc_wiota_set_extra_rf_before_send(unsigned int duration); // ms
+void uc_wiota_set_extra_rf_before_send(unsigned int duration);              // ms
 unsigned char uc_wiota_get_is_gating(void);
 void uc_wiota_set_gating_event(unsigned char action, unsigned char event_id);
 #endif // _CLK_GATING_
 
-void uc_wiota_set_data_rate(unsigned char rate_mode, unsigned short rate_value);
+unsigned char uc_wiota_set_data_rate(unsigned char rate_mode, unsigned short rate_value);
 
-void uc_wiota_set_cur_power(signed char power);
+unsigned char uc_wiota_set_cur_power(signed char power);
 
 void uc_wiota_set_max_power(signed char power);
 
@@ -469,7 +502,9 @@ void uc_wiota_reset_throughput(unsigned char type);
 
 void uc_wiota_get_throughput(uc_throughput_info_t *throughput_info);
 
+#ifdef _LIGHT_PILOT_
 void uc_wiota_light_func_enable(unsigned char func_enable);
+#endif
 
 #ifdef _SUBFRAME_MODE_
 unsigned char uc_wiota_set_two_way_subframe_num(unsigned char subf_num_even, unsigned char subf_num_odd);
@@ -479,7 +514,7 @@ unsigned char uc_wiota_set_subframe_num(unsigned char subframe_num);
 
 unsigned char uc_wiota_get_subframe_num(void);
 
-void uc_wiota_set_bc_round(unsigned char bc_round);
+unsigned char uc_wiota_set_bc_round(unsigned char bc_round);
 
 void uc_wiota_set_detect_time(unsigned int wait_cnt);
 
@@ -489,11 +524,13 @@ unsigned int uc_wiota_get_frame_len(unsigned char type);
 
 unsigned int uc_wiota_get_frame_len_us(unsigned char type);
 
-unsigned int uc_wiota_get_frame_len_with_params(unsigned char symbol_len, unsigned char symbol_mode, unsigned char subf_num, unsigned char band_width, unsigned char suf_mode);
+unsigned int uc_wiota_get_frame_len_with_params(unsigned char symbol_len, unsigned char symbol_mode,
+                                                unsigned char subf_num, unsigned char band_width, unsigned char suf_mode);
 
 unsigned int uc_wiota_get_subframe_len(void);
 
 void uc_wiota_set_continue_send(unsigned char c_send_flag);
+
 #ifdef _LPM_PAGING_
 void uc_wiota_set_embed_pgtx(unsigned char is_embed_pgtx);
 #endif
@@ -506,13 +543,17 @@ unsigned char uc_wiota_get_subframe_recv(void);
 void uc_wiota_set_subrecv_fail_limit(unsigned char fail_limit);
 void uc_wiota_set_two_way_mode(unsigned char mode, unsigned char is_open);
 void uc_wiota_get_two_way_mode(unsigned char *is_send, unsigned char *is_recv);
-void uc_wiota_set_lna_pa_gpio(unsigned char lna_gpio, unsigned char pa_gpio, unsigned char lna_trigger, unsigned char pa_trigger);
 void uc_wiota_set_subframe_head(unsigned char head_data);
 #endif // _SUBFRAME_MODE_
 
+void uc_wiota_set_lna_pa_gpio(unsigned char lna_gpio, unsigned char pa_gpio,
+                              unsigned char lna_trigger, unsigned char pa_trigger);
+
+void uc_wiota_set_lna_pa_switch(unsigned char is_open); // open control
+
 void uc_wiota_set_incomplete_recv(unsigned char recv_flag);
 
-void uc_wiota_set_tx_mode(unsigned char mode);
+unsigned char uc_wiota_set_tx_mode(unsigned char mode);
 
 unsigned char uc_wiota_get_tx_mode(void);
 
@@ -526,15 +567,15 @@ void uc_wiota_set_is_ex_wk(unsigned char is_need_ex_wk);
 
 void uc_wiota_sleep_enter(unsigned char is_need_ex_wk, unsigned char is_need_32k_div);
 
-void uc_wiota_set_recv_mode(uc_auto_recv_mode_e mode);
+unsigned char uc_wiota_set_recv_mode(uc_auto_recv_mode_e mode);
 
-unsigned short uc_wiota_get_subframe_data_len(unsigned char mcs, unsigned char is_bc, unsigned char is_first_sub, unsigned char is_first_fn);
-
-void uc_wiota_set_adjust_mode(uc_adjust_mode_e adjust_mode);
+unsigned short uc_wiota_get_subframe_data_len(unsigned char mcs, unsigned char is_bc,
+                                              unsigned char is_first_sub, unsigned char is_first_fn);
 
 void uc_wiota_set_unisend_fail_cnt(unsigned char cnt);
 
-void uc_wiota_scan_freq(unsigned char *data, unsigned short len, unsigned char scan_round, unsigned int timeout, uc_recv callback, uc_recv_back_p recv_result);
+void uc_wiota_scan_freq(unsigned char *data, unsigned short len, unsigned char scan_round, unsigned int timeout,
+                        uc_recv callback, uc_recv_back_p recv_result);
 
 #ifdef _LPM_PAGING_
 void uc_wiota_paging_rx_enter(unsigned char is_need_32k_div, unsigned int timeout_max);
@@ -562,7 +603,7 @@ unsigned char uc_wiota_voice_data_acc(unsigned char is_first, unsigned int *data
 void uc_wiota_set_outer_32K(unsigned char is_open);
 
 #ifdef _LPM_PAGING_
-unsigned char uc_wiota_get_awakened_cause(unsigned char *is_cs_awakened); // uc_awakened_cause_e
+unsigned char uc_wiota_get_awakened_cause(unsigned char *is_cs_awakened);                                // uc_awakened_cause_e
 unsigned char uc_wiota_get_paging_awaken_cause(unsigned int *detected_times, unsigned char *detect_idx); // uc_lpm_paging_waken_cause_e
 #endif
 
@@ -600,7 +641,7 @@ void uc_wiota_get_uni_ack_info(uc_uni_ack_info_p uni_ack_info_ptr);
 
 void uc_wiota_set_uni_ack_info(uc_uni_ack_info_p uni_ack_info_ptr);
 
-void uc_wiota_get_module_id(unsigned char *module_id);
+unsigned char uc_wiota_get_module_id(unsigned char *module_id);
 
 unsigned char uc_wiota_set_data_limit(unsigned char mode, unsigned short limit);
 
@@ -617,6 +658,12 @@ void uc_wiota_get_adc_adj_info(uc_adc_adj_p adc_adj);
 void uc_wiota_set_adc_adj_close(unsigned char is_close); // 1 means close
 
 unsigned char uc_wiota_set_search_list(unsigned char bandwidth, unsigned int value);
+
+void uc_wiota_set_scan_sorted(unsigned char is_sort);
+
+void uc_wiota_set_scan_max(unsigned char is_max);
+
+unsigned char uc_wiota_flash_id_is_puya(void);
 
 // below is about uboot
 void get_uboot_version(unsigned char *version);

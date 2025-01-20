@@ -193,7 +193,7 @@ extern "C"
      *
      * @param  cfg the DTU config information
      */
-    void uc_wiota_get_dtu_config(dtu_info_t *cfg);
+    // void uc_wiota_get_dtu_config(dtu_info_t *cfg);
 
     /**
      * @brief  set frequency point list

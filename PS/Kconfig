@@ -21,8 +21,8 @@ config _L1_FACTORY_FUNC_
     default y
 
 config _CLK_GATING_
-    bool "clk gating, default close(_CLK_GATING_)"
-    default n
+    bool "clk gating, default open(_CLK_GATING_)"
+    default y
 
 config _LPM_PAGING_
     bool "lpm paging mode, default open(_LPM_PAGING_)"
@@ -47,4 +47,9 @@ config _NEW_UNI_MODE_
 config _BROADCAST_MODE_
     bool "broadcast mode, default open(_BROADCAST_MODE_)"
     default y
+
+config _NARROW_BAND_FUNC_
+    bool "super narrow mode, default open(_NARROW_BAND_FUNC_)"
+    default y
+
 endmenu

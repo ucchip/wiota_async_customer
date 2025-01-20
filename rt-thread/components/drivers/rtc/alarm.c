@@ -827,6 +827,15 @@ rt_err_t rt_alarm_simple(rt_int32_t alarm_sec)
     if (alarm_sec == 0) { rtc_alarm_time.mask = 0x7F; }
     else { rtc_alarm_time.mask = 0x78; }
 
+    if (!device)
+    {
+        rt_kprintf("rtc err\n");
+        return -RT_ERROR;
+    }
+
+    /*初始化RTC设备*/
+    rt_device_open(device, 0);
+
     rt_device_control(device, RT_DEVICE_CTRL_RTC_GET_TIME, &time_now);
 
     time_new = time_now + alarm_sec;

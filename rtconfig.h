@@ -124,11 +124,13 @@
 #define _RT_THREAD_
 #define _ALLOW_TRACE_PRITF_TEST_
 #define _L1_FACTORY_FUNC_
+#define _CLK_GATING_
 #define _LPM_PAGING_
 #define _NARROW_BAND_
 #define _SUBFRAME_MODE_
 #define _OLD_UNI_MODE_
 #define _NEW_UNI_MODE_
 #define _BROADCAST_MODE_
+#define _NARROW_BAND_FUNC_
 
 #endif

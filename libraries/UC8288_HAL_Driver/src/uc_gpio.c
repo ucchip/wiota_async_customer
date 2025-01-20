@@ -63,11 +63,11 @@ void gpio_init(GPIO_TypeDef *GPIO, GPIO_CFG_TypeDef *GPIO_CFG, GPIO_CFG_Type *gp
     //set pin pupd
     if (gpio_cfg->pupd == GPIO_PUPD_UP)
     {
-        GPIO_CFG->PADCFG |= (1 << gpio_cfg->pin);
+        GPIO_CFG->PADCFG[gpio_cfg->pin / 4] |= (1 << ((gpio_cfg->pin % 4) * 8));
     }
     else
     {
-        GPIO_CFG->PADCFG &= ~(1 << gpio_cfg->pin);
+        GPIO_CFG->PADCFG[gpio_cfg->pin / 4] &= ~(1 << ((gpio_cfg->pin % 4) * 8));
     }
 }
 
@@ -119,15 +119,16 @@ void gpio_set_pin_pupd(GPIO_CFG_TypeDef *GPIO_CFG, GPIO_PIN pin, GPIO_PUPD pupd)
     CHECK_PARAM(PARAM_GPIO_CFG(GPIO_CFG));
     CHECK_PARAM(PARAM_GPIO_PIN(pin));
     CHECK_PARAM(PARAM_GPIO_PUPD(pupd));
+    CHECK_PARAM(PARAM_GPIO_PULLUP_PIN(pin));
 
     //set pin pupd
     if (pupd == GPIO_PUPD_UP)
     {
-        GPIO_CFG->PADCFG |= (1 << pin);
+        GPIO_CFG->PADCFG[pin / 4] |= (1 << ((pin % 4) * 8));
     }
     else
     {
-        GPIO_CFG->PADCFG &= ~(1 << pin);
+        GPIO_CFG->PADCFG[pin / 4] &= ~(1 << ((pin % 4) * 8));
     }
 }
 
@@ -135,7 +136,8 @@ GPIO_PUPD gpio_get_pin_pupd(GPIO_CFG_TypeDef *GPIO_CFG, GPIO_PIN pin)
 {
     CHECK_PARAM(PARAM_GPIO_CFG(GPIO_CFG));
     CHECK_PARAM(PARAM_GPIO_PIN(pin));
-    return ((GPIO_CFG->PADCFG >> pin) & 0x01);
+    CHECK_PARAM(PARAM_GPIO_PULLUP_PIN(pin));
+    return ((GPIO_CFG->PADCFG[pin / 4] >> ((pin % 4) * 8)) & 0x01);
 }
 
 void gpio_set_pin_direction(GPIO_TypeDef *GPIO, GPIO_PIN pin, GPIO_DIRECTION dir)

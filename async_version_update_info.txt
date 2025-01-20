@@ -1,4 +1,34 @@
 
+async v4.2
+A-v4.2
+
+外部更新：
+    1. gpio_pullup功能修复，uc_gpio.h/uc_gpio.c/uc_pulpino.h更新
+    2. adc校准更新，uc_adda.c更新，需注意uc_wiota_api.h同步更新，uc_adc_adj_t结构体更新
+    3. PS/SConscript更新，lib = ['libwin_wiota_dev_v4.2']
+    4. rt_alarm_simple更新
+    5. wiota dtu api删除，涉及at_server.c
+    6. 打开宏_CLK_GATING_，_NARROW_BAND_FUNC_
+    7. puya 4Mb、16Mb flash支持
+
+协议接口更新：
+    1. dtu接口删除
+    2. 新增频点间隔参数，用于频点计算，freq spacing，默认为0，即与带宽一样，可配置成与带宽不一样
+    3. 新增扫频灵活配置，结果输出是否排序，多轮结果取平均还是最大值
+    4. 新增收发返回结果，UC_OP_MEM_ERR，内存异常上报
+    5. 多个配置接口新增返回值，表示是否配置成功，详见uc_wiota_api.h
+    6. 去掉light指示灯控制，删除uc_wiota_light_func_enable
+    7. 新增pa lna控制gpio，uc_wiota_set_lna_pa_gpio，uc_wiota_set_lna_pa_switch
+
+协议内部更新：
+    1. 12.5K工作带宽支持，symbol length只能配置128,256
+    2. paging tx num的bug修复
+    3. new ldo更新
+    4. 新增clk gating功能
+    5. 帧头dfe计算异常修复
+    6. 如果未读到静态数据，取用module id作为userid
+    7. task使用动态方式创建，修复delete task临界问题
+
 
 async v4.1
 A-v4.1

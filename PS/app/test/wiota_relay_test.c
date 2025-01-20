@@ -166,7 +166,7 @@ static void test_async_relay_task(void *pPara)
     // first of all, init wiota
     uc_wiota_init();
 
-    uc_wiota_light_func_enable(0);
+    // uc_wiota_light_func_enable(0);
 
     // test! whole config
     uc_wiota_get_system_config(&wiota_config);
