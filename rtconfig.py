@@ -44,14 +44,15 @@ if PLATFORM == 'gcc':
     DEVICE = ' -march=rv32imfc '
     #DEVICE = ' -march=rv32imc '
     CFLAGS = '-g -Os -Wall '+ DEVICE
-    #CFLAGS += ' -ffunction-sections -fdata-sections '
-    CFLAGS += ' -ffunction-sections '
+    CFLAGS += ' -ffunction-sections -fdata-sections -fno-toplevel-reorder'
+    # CFLAGS += ' -ffunction-sections '
     # CFLAGS += ' -Iplatform -Ilibraries/inc '
     AFLAGS = '-c -g '+ DEVICE
     # AFLAGS += ' -Iplatform -Ilibraries/inc '
     LFLAGS = ' -nostartfiles -Wl,--gc-sections '
     LFLAGS += ' -T ' + LINK_FILE
     LFLAGS += ' -Wl,-Map=' + MAP_FILE
+    CFLAGS += ' -D _WANT_USE_LONG_TIME_T'
 
     CPATH = ''
     LPATH = ''

@@ -1,16 +1,11 @@
-// Copyright 2016 ETH Zurich and University of Bologna.
-// Copyright and related rights are licensed under the Solderpad Hardware
-// License, Version 0.51 (the “License”); you may not use this file except in
-// compliance with the License. You may obtain a copy of the License at
-// http://solderpad.org/licenses/SHL-0.51. Unless required by applicable law
-// or agreed to in writing, software, hardware and materials distributed under
-// this License is distributed on an “AS IS” BASIS, WITHOUT WARRANTIES OR
-// CONDITIONS OF ANY KIND, either express or implied. See the License for the
-// specific language governing permissions and limitations under the License.
-
-
+#include "rtconfig.h"
 #define EXCEPTION_STACK_SIZE 96
 
+#ifdef ARCH_RISCV_FPU_S
+  #define INTERRUPT_STACK_SIZE ((72)*4)
+#else
+  #define INTERRUPT_STACK_SIZE ((38)*4)
+#endif
 
 /* ========================================================= [ entry ] === */
 .section .reset
@@ -51,6 +46,43 @@ reset_handler:
   mv x30, x1
   mv x31, x1
 
+#ifdef ARCH_RISCV_FPU_S
+
+  fmv.s.x f0, x1
+  fmv.s.x f1, x1
+  fmv.s.x f2, x1
+  fmv.s.x f3, x1
+  fmv.s.x f4, x1
+  fmv.s.x f5, x1
+  fmv.s.x f6, x1
+  fmv.s.x f7, x1
+  fmv.s.x f8, x1
+  fmv.s.x f9, x1
+  fmv.s.x f10, x1
+  fmv.s.x f11, x1
+  fmv.s.x f12, x1
+  fmv.s.x f13, x1
+  fmv.s.x f14, x1
+  fmv.s.x f15, x1
+  fmv.s.x f16, x1
+  fmv.s.x f17, x1
+  fmv.s.x f18, x1
+  fmv.s.x f19, x1
+  fmv.s.x f20, x1
+  fmv.s.x f21, x1
+  fmv.s.x f22, x1
+  fmv.s.x f23, x1
+  fmv.s.x f24, x1
+  fmv.s.x f25, x1
+  fmv.s.x f26, x1
+  fmv.s.x f27, x1
+  fmv.s.x f28, x1
+  fmv.s.x f29, x1
+  fmv.s.x f30, x1
+  fmv.s.x f31, x1
+
+#endif
+
   /* stack initilization */
   la   x2, _stack_start
 
@@ -72,8 +104,6 @@ zero_loop:
 zero_loop_end:
 
   /* Run global initialization functions */
-  li a0, 1                      /* set app mode */
-  call  set_program_type
   call  boot_noop
   call  boot_strap
   //li a0, 1
@@ -217,38 +247,94 @@ default_int_handler:
 
 ISR_ALL_ASM:
   // save all from thread context
-    addi sp, sp, -32 * 4
-    sw x5,   5 * 4(sp)
-    sw x1,   1 * 4(sp)
-    li t0, 0x80
-    sw t0,   2 * 4(sp)
-    sw x4,   4 * 4(sp)
-    sw x6,   6 * 4(sp)
-    sw x7,   7 * 4(sp)
-    sw x8,   8 * 4(sp)
-    sw x9,   9 * 4(sp)
-    sw x10, 10 * 4(sp)
-    sw x11, 11 * 4(sp)
-    sw x12, 12 * 4(sp)
-    sw x13, 13 * 4(sp)
-    sw x14, 14 * 4(sp)
-    sw x15, 15 * 4(sp)
-    sw x16, 16 * 4(sp)
-    sw x17, 17 * 4(sp)
-    sw x18, 18 * 4(sp)
-    sw x19, 19 * 4(sp)
-    sw x20, 20 * 4(sp)
-    sw x21, 21 * 4(sp)
-    sw x22, 22 * 4(sp)
-    sw x23, 23 * 4(sp)
-    sw x24, 24 * 4(sp)
-    sw x25, 25 * 4(sp)
-    sw x26, 26 * 4(sp)
-    sw x27, 27 * 4(sp)
-    sw x28, 28 * 4(sp)
-    sw x29, 29 * 4(sp)
-    sw x30, 30 * 4(sp)
-    sw x31, 31 * 4(sp)
+  addi sp,sp,-INTERRUPT_STACK_SIZE  
+  sw x5,   5 * 4(sp)
+  sw x1,   1 * 4(sp)
+  li t0, 0x80
+  sw t0,   2 * 4(sp)
+  sw x4,   4 * 4(sp)
+  sw x6,   6 * 4(sp)
+  sw x7,   7 * 4(sp)
+  sw x8,   8 * 4(sp)
+  sw x9,   9 * 4(sp)
+  sw x10, 10 * 4(sp)
+  sw x11, 11 * 4(sp)
+  sw x12, 12 * 4(sp)
+  sw x13, 13 * 4(sp)
+  sw x14, 14 * 4(sp)
+  sw x15, 15 * 4(sp)
+  sw x16, 16 * 4(sp)
+  sw x17, 17 * 4(sp)
+  sw x18, 18 * 4(sp)
+  sw x19, 19 * 4(sp)
+  sw x20, 20 * 4(sp)
+  sw x21, 21 * 4(sp)
+  sw x22, 22 * 4(sp)
+  sw x23, 23 * 4(sp)
+  sw x24, 24 * 4(sp)
+  sw x25, 25 * 4(sp)
+  sw x26, 26 * 4(sp)
+  sw x27, 27 * 4(sp)
+  sw x28, 28 * 4(sp)
+  sw x29, 29 * 4(sp)
+  sw x30, 30 * 4(sp)
+  sw x31, 31 * 4(sp)
+
+  // hwloop
+  csrr t0, 0x7B0
+  csrr t1, 0x7B1
+  csrr t2, 0x7B2
+  sw t0, 32*4(sp)  // lpstart[0]
+  sw t1, 33*4(sp)  // lpend[0]
+  sw t2, 34*4(sp)  // lpcount[0]
+  csrr t0, 0x7B4
+  csrr t1, 0x7B5
+  csrr t2, 0x7B6
+  sw t0, 35*4(sp)  // lpstart[1]
+  sw t1, 36*4(sp)  // lpend[1]
+  sw t2, 37*4(sp)  // lpcount[1]
+
+#ifdef ARCH_RISCV_FPU_S
+  csrr t0, 0x03  // fcsr
+  csrr t1, 0x06  // fprec
+  sw t0, 38*4(sp)  
+  sw t1, 39*4(sp) 
+
+  // fp reg
+  fsw ft0,40*4(sp)  
+  fsw ft1,41*4(sp)  
+  fsw ft2,42*4(sp)  
+  fsw ft3,43*4(sp)  
+  fsw ft4,44*4(sp)  
+  fsw ft5,45*4(sp)  
+  fsw ft6,46*4(sp)  
+  fsw ft7,47*4(sp)  
+  fsw fs0,48*4(sp)  
+  fsw fs1,49*4(sp)  
+  fsw fa0,50*4(sp)  
+  fsw fa1,51*4(sp)  
+  fsw fa2,52*4(sp)  
+  fsw fa3,53*4(sp)  
+  fsw fa4,54*4(sp)  
+  fsw fa5,55*4(sp)  
+  fsw fa6,56*4(sp)  
+  fsw fa7,57*4(sp)  
+  fsw fs2,58*4(sp)  
+  fsw fs3,59*4(sp)  
+  fsw fs4,60*4(sp)  
+  fsw fs5,61*4(sp)  
+  fsw fs6,62*4(sp)  
+  fsw fs7,63*4(sp)  
+  fsw fs8,64*4(sp)  
+  fsw fs9,65*4(sp)  
+  fsw fs10,66*4(sp)  
+  fsw fs11,67*4(sp)  
+  fsw ft8,68*4(sp)  
+  fsw ft9,69*4(sp)  
+  fsw ft10,70*4(sp)  
+  fsw ft11,71*4(sp)   
+
+#endif
 
 ISR_ALL_ASM_BAK:
     // switch to interrupt stack
@@ -287,6 +373,65 @@ ISR_ALL_ASM_BAK:
     csrw mepc, a0
 
 spurious_interrupt_all:
+
+    // hwloop
+    lw t0, 32*4(sp)  // lpstart[0]
+    lw t1, 33*4(sp)  // lpend[0]
+    lw t2, 34*4(sp)  // lpcount[0]
+    csrw 0x7B0,t0
+    csrw 0x7B1,t1
+    csrw 0x7B2,t2
+    lw t0, 35*4(sp)  // lpstart[1]
+    lw t1, 36*4(sp)  // lpend[1]
+    lw t2, 37*4(sp)  // lpcount[1]
+    csrw 0x7B4,t0
+    csrw 0x7B5,t1
+    csrw 0x7B6,t2
+
+
+#ifdef ARCH_RISCV_FPU_S
+    lw t0, 38*4(sp)  // fcsr
+    lw t1, 39*4(sp)  // fprec
+    csrw 0x3,t0      // 
+    csrw 0x6,t1      // 
+
+    //
+
+    // fp reg
+    flw ft0,40*4(sp)  
+    flw ft1,41*4(sp)  
+    flw ft2,42*4(sp)  
+    flw ft3,43*4(sp)  
+    flw ft4,44*4(sp)  
+    flw ft5,45*4(sp)  
+    flw ft6,46*4(sp)  
+    flw ft7,47*4(sp)  
+    flw fs0,48*4(sp)  
+    flw fs1,49*4(sp)  
+    flw fa0,50*4(sp)  
+    flw fa1,51*4(sp)  
+    flw fa2,52*4(sp)  
+    flw fa3,53*4(sp)  
+    flw fa4,54*4(sp)  
+    flw fa5,55*4(sp)  
+    flw fa6,56*4(sp)  
+    flw fa7,57*4(sp)  
+    flw fs2,58*4(sp)  
+    flw fs3,59*4(sp)  
+    flw fs4,60*4(sp)  
+    flw fs5,61*4(sp)  
+    flw fs6,62*4(sp)  
+    flw fs7,63*4(sp)  
+    flw fs8,64*4(sp)  
+    flw fs9,65*4(sp)  
+    flw fs10,66*4(sp)  
+    flw fs11,67*4(sp)  
+    flw ft8,68*4(sp)  
+    flw ft9,69*4(sp)  
+    flw ft10,70*4(sp)  
+    flw ft11,71*4(sp) 
+#endif
+
     lw x1,   1 * 4(sp)
 
     // Remain in M-mode after mret
@@ -324,7 +469,7 @@ spurious_interrupt_all:
     lw x30, 30 * 4(sp)
     lw x31, 31 * 4(sp)
 
-    addi sp, sp, 32 * 4
+    addi sp,sp,INTERRUPT_STACK_SIZE  
     mret
 
 /* ================== [ all interrupt handler end] =========== */

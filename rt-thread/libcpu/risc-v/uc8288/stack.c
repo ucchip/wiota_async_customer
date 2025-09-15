@@ -23,6 +23,7 @@
  */
 
 #include <rtthread.h>
+#include "rtconfig.h"
 
 /* flag in interrupt handling */
 rt_uint32_t rt_interrupt_from_thread;
@@ -63,6 +64,52 @@ struct stack_frame
     rt_ubase_t t4;         /* x29 - t4     - temporary register 4                */
     rt_ubase_t t5;         /* x30 - t5     - temporary register 5                */
     rt_ubase_t t6;         /* x31 - t6     - temporary register 6                */
+
+    rt_ubase_t hwlp_s0;    /* hardware loop 0 start                              */
+    rt_ubase_t hwlp_e0;    /* hardware loop 0 end                                */
+    rt_ubase_t hwlp_c0;    /* hardware loop 0 count                              */
+    rt_ubase_t hwlp_s1;    /* hardware loop 1 start                              */
+    rt_ubase_t hwlp_e1;    /* hardware loop 1 end                                */
+    rt_ubase_t hwlp_c1;    /* hardware loop 1 count                              */
+
+#ifdef ARCH_RISCV_FPU_S
+    rt_ubase_t fcsr;       /* floating - point control and status register       */
+    rt_ubase_t fprec;      /* controls the precision and latency of the div/sqrt */
+    rt_ubase_t f0;         /* f0                                                 */
+    rt_ubase_t f1;         /* f1                                                 */
+    rt_ubase_t f2;         /* f2                                                 */
+    rt_ubase_t f3;         /* f3                                                 */
+    rt_ubase_t f4;         /* f4                                                 */
+    rt_ubase_t f5;         /* f5                                                 */
+    rt_ubase_t f6;         /* f6                                                 */
+    rt_ubase_t f7;         /* f7                                                 */
+    rt_ubase_t f8;         /* f8                                                 */
+    rt_ubase_t f9;         /* f9                                                 */
+    rt_ubase_t f10;        /* f10                                                */
+    rt_ubase_t f11;        /* f11                                                */
+    rt_ubase_t f12;        /* f12                                                */
+    rt_ubase_t f13;        /* f13                                                */
+    rt_ubase_t f14;        /* f14                                                */
+    rt_ubase_t f15;        /* f15                                                */
+    rt_ubase_t f16;        /* f16                                                */
+    rt_ubase_t f17;        /* f17                                                */
+    rt_ubase_t f18;        /* f18                                                */
+    rt_ubase_t f19;        /* f19                                                */
+    rt_ubase_t f20;        /* f20                                                */
+    rt_ubase_t f21;        /* f21                                                */
+    rt_ubase_t f22;        /* f22                                                */
+    rt_ubase_t f23;        /* f23                                                */
+    rt_ubase_t f24;        /* f24                                                */
+    rt_ubase_t f25;        /* f25                                                */
+    rt_ubase_t f26;        /* f26                                                */
+    rt_ubase_t f27;        /* f27                                                */
+    rt_ubase_t f28;        /* f28                                                */
+    rt_ubase_t f29;        /* f29                                                */
+    rt_ubase_t f30;        /* f30                                                */
+    rt_ubase_t f31;        /* f31                                                */
+#endif
+
+
 };
 
 /**

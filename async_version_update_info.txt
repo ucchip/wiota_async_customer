@@ -1,4 +1,46 @@
 
+
+async v4.3
+A-v4.3
+
+外部更新：
+    1. rt-thread更新，libraries更新，如本地无特殊修改，建议直接替换这两个文件夹！
+    2. application目录结构更新
+    3. uboot.bin更新，ctrl port和log port配置更新
+    4. RT_TASK_RESOURCE_TOOL需打开，否则可能结构体不对应
+    5. 更新flash spi接口，修复cache miss等问题
+    6. 二次开发如需float浮点运算，需打开宏ARCH_RISCV_FPU_S，并且link中stack大小增加为0x300
+    7. 更新hw_loop的寄存器保存
+    8. 编译增加-fdata-sections -fno-toplevel-reorder
+    9. qc func，快速连接功能更新
+    10. 去除throught统计功能
+    11. 修复adc水线设置bug
+
+协议接口更新：
+    1. 子帧模式下子帧数据上报at，UC_RECV_SUBF_DATA，需设AT+WIOTASUBFREP=1
+    2. rssi上报优化，更加精准和迅速
+    3. 双模(普通广播/单播和子帧接收)同时接收，自动识别接收，uc_wiota_set_two_mode_recv
+    4. 万能内存修改接口，uc_wiota_mem_addr_value
+    5. 数字LDO配置，uc_wiota_set_new_ldo
+    6. 自动agc及agc init配置，调试接口
+
+协议内部更新：
+    1. 修复单播发送超时以及crc mask的bug
+    2. 工厂测试模式不使用子网mask
+    3. search list更新
+    4. 优化静态数据初始化时的堆栈使用
+    5. 优化读取ramp list的检测
+
+注意：
+    1. 放到linux环境运行时，可能需要修改Kconfig的文件结尾符号，在主目录使用如下命令转换：
+        $ find . -name Kconfig -type f -print0 | xargs -0 dos2unix
+    2. 二次开发使用浮点运算时，需打开宏ARCH_RISCV_FPU_S，并且link中stack大小增加为0x300，
+        需要移动stack位置到traceram之前，同时对应修改dataram大小（board.h中RAM_SIZE也需要修改）
+遗留问题：
+    1. 超低功耗唤醒扩展ID模式，设置两个唤醒ID，存在误唤醒问题，下一版已修正
+    2. V4.2版本唤醒V4.3版本，出现LDO配置异常，概率很小
+
+
 async v4.2
 A-v4.2
 

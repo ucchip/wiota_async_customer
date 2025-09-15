@@ -89,7 +89,6 @@ void reset_8288(void)
 	REG(REG_WATCHDOG_FEED) |= 0x1;
 	REG(REG_WATCHDOG_EN) |= 0x1;
 	while(1);
-
 }
 
 

@@ -1,5 +1,15 @@
 menu "wiota PS"
 
+config UC8288_MODULE
+    bool "use at cmd, default open(UC8288_MODULE)"
+    default y
+    select RT_USING_AT
+    select AT_USING_SERVER
+
+config _QUICK_CONNECT_
+    bool "open quick connect, default open(_QUICK_CONNECT_)"
+    default y
+
 config _FPGA_
     bool "default open(_FPGA_)"
     default y

@@ -26,8 +26,7 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <rtthread.h>
-#if 1//def RT_USING_HWTIMER
+
 #include "uc_timer.h"
 #include "uc_event.h"
 
@@ -36,6 +35,12 @@ void timer_init(TIMER_TYPE *TIMERx, TIMER_CFG_Type *cfg)
     CHECK_PARAM(PARAM_TIMER(TIMERx));
     CHECK_PARAM(PARAM_TIMER_PRESCALER(cfg->pre));
 
+    if (cfg->pre > 0x07)
+    {
+        cfg->pre = 0x07;
+    }
+
+    TIMERx->CTR &= ~(0x07 << 3);
     TIMERx->CTR |= (cfg->pre << 3);
     TIMERx->CMP = cfg->cmp;
     TIMERx->TRR = cfg->cnt;
@@ -174,7 +179,6 @@ void timer_set_prescaler_value(TIMER_TYPE *TIMERx, uint8_t pre)
         pre = 0x07;
     }
 
-    TIMERx->CTR &= (0x07 << 3);
+    TIMERx->CTR &= ~(0x07 << 3);
     TIMERx->CTR |= (pre << 3);
 }
-#endif

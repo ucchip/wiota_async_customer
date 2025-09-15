@@ -38,6 +38,7 @@
 #define PARAM_DAC_WT_RATE(dac_wt)           (dac_wt  <= (0x3FF)  && dac_wt  >= (0x00))
 #define PARAM_ADDC(adda)                     (adda    == UC_ADDA)
 
+#define WATERMARK_FIFO_SIZE 60  // must < 64
 
 typedef enum
 {

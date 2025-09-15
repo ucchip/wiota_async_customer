@@ -26,36 +26,34 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <rtthread.h>
-#ifdef RT_USING_WDT
-#include <uc_watchdog.h>
 
-void wdt_init(WDG_TYPE *WDG, uint32_t period_ms)
+#include<uc_watchdog.h>
+
+void wdt_init(WDG_TYPE* WDG, uint32_t period_ms)
 {
     CHECK_PARAM(PARAM_WDG(WDG));
 
     WDG->WIV = 0xFFFFFFFFU - period_ms * 32768U / 1000;
-    WDG->WFD |= WDG_FEED_MASK; //wdt reload initial counter
+    WDG->WFD |= WDG_FEED_MASK;//wdt reload initial counter
 }
 
-void wdt_enable(WDG_TYPE *WDG)
+void wdt_enable(WDG_TYPE* WDG)
 {
     CHECK_PARAM(PARAM_WDG(WDG));
 
     WDG->CTR |= (WDG_ENABLE_MASK);
 }
 
-void wdt_disable(WDG_TYPE *WDG)
+void wdt_disable(WDG_TYPE* WDG)
 {
     CHECK_PARAM(PARAM_WDG(WDG));
 
     WDG->CTR &= ~(WDG_ENABLE_MASK);
 }
 
-void wdt_feed(WDG_TYPE *WDG)
+void wdt_feed(WDG_TYPE* WDG)
 {
     CHECK_PARAM(PARAM_WDG(WDG));
 
     WDG->WFD |= WDG_FEED_MASK;
 }
-#endif

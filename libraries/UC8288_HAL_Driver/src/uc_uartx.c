@@ -26,8 +26,7 @@
  *  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#include <rtthread.h>
-#ifdef UC_USING_UARTX
+
 #include "uc_uartx.h"
 #include "uc_pulpino.h"
 
@@ -171,4 +170,3 @@ void uartx_clean_txfifo(UART_TYPE* UARTx)
     UARTx->FCR |= TX_FIFO_CLEAN_MASK;
     UARTx->LCR &= ~0x80;//clear enable bit for access DLM, DLL and FCR
 }
-#endif

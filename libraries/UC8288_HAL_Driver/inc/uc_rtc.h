@@ -83,7 +83,7 @@ typedef struct
     uint8_t  week;
     uint32_t mask;//for rtc alarm mask
     void (*call_back)(void *);          // rtc alarm interrupt user callback
-    void *call_back_arg;   
+    void *call_back_arg;                // rtc alarm interrupt user callback args
 } rtc_alarm_t;
 
 typedef enum

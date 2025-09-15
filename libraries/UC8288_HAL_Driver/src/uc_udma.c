@@ -5,19 +5,26 @@
  * Provides udma fuction like configuring udma and using.
  *
  */
-#include <rtthread.h>
-#ifdef UC_USING_UDMA
+
 #include "uc_udma.h"
 
 /*Macro Definition*/
 
+
+
+
 /*Definition*/
+
+
+
 
 /*Static Variable*/
 
 /*Global Variable*/
 
 /*Static Fuction*/
+
+
 
 /*********************************************************
  * Function name    :void udma_init(UDMA_TypeDef *DMA,
@@ -30,10 +37,10 @@
  * Author           :yjxiong
  * establish time   :2021-04-21
  *********************************************************/
-void udma_init(UDMA_TypeDef *DMA, DMA_CFG_Type *DMA_Config)
+void udma_init(UDMA_TypeDef* DMA, DMA_CFG_Type* DMA_Config)
 {
     /*select udma*/
-    //    PARAM_UDMA(DMA);
+//    PARAM_UDMA(DMA);
 
     /*select udma channel*/
     //PARAM_DMA_CHAN(DMA_Config->channel_chan_select);
@@ -44,6 +51,7 @@ void udma_init(UDMA_TypeDef *DMA, DMA_CFG_Type *DMA_Config)
     /*select udma peripheral*/
     DMA->DMAPSR = DMA_Config->channel_chan_select;
 }
+
 
 /*********************************************************
  * Function name    :void udma_chan_init(UDCHAN_TypeDef *CHANx,
@@ -57,35 +65,42 @@ void udma_init(UDMA_TypeDef *DMA, DMA_CFG_Type *DMA_Config)
  * Author           :yjxiong
  * establish time   :2021-04-21
  *********************************************************/
-void udma_chan_init(UDCHAN_TypeDef *CHANx, DMACHAN_CFG_Type *CHAN_Config)
+void udma_chan_init(UDCHAN_TypeDef* CHANx, DMACHAN_CFG_Type* CHAN_Config)
 {
 
-    //    /*channel enable*/
-    //    PARAM_CHAN_ENABLE(CHAN_Config->channel_enable);
-    //
-    //    /*channel pause tramsfer*/
-    //    PARAM_CHAN_PAUSE(CHAN_Config->channel_pause);
-    //
-    //    /*channel mode select*/
-    //    PARAM_CHAN_MODE(CHAN_Config->channel_mode);
-    //
-    //    /*channel reset*/
-    //    PARAM_CHAN_RESET(CHAN_Config->channel_reset);
-    //
-    //    /*end tramsfer*/
-    //    PARAM_CHAN_ENDOF(CHAN_Config->channel_endof);
-    //
-    //    /*destination increase*/
-    //    PARAM_CHAN_ADTYPE(CHAN_Config->channel_d_increment);
-    //
-    //    /*source increase*/
-    //    PARAM_CHAN_ADTYPE(CHAN_Config->channel_s_increment);
-    //
-    //    /**/
-    //    uint32_t temp = CHAN_Config->channel_size | CHAN_Config->channel_s_increment << 18;
+//    /*channel enable*/
+//    PARAM_CHAN_ENABLE(CHAN_Config->channel_enable);
+//
+//    /*channel pause tramsfer*/
+//    PARAM_CHAN_PAUSE(CHAN_Config->channel_pause);
+//
+//    /*channel mode select*/
+//    PARAM_CHAN_MODE(CHAN_Config->channel_mode);
+//
+//    /*channel reset*/
+//    PARAM_CHAN_RESET(CHAN_Config->channel_reset);
+//
+//    /*end tramsfer*/
+//    PARAM_CHAN_ENDOF(CHAN_Config->channel_endof);
+//
+//    /*destination increase*/
+//    PARAM_CHAN_ADTYPE(CHAN_Config->channel_d_increment);
+//
+//    /*source increase*/
+//    PARAM_CHAN_ADTYPE(CHAN_Config->channel_s_increment);
+//
+//    /**/
+//    uint32_t temp = CHAN_Config->channel_size | CHAN_Config->channel_s_increment << 18;
 
     /*configuration csr*/
-    CHANx->CHANCSR = CHAN_Config->channel_size | CHAN_Config->channel_s_increment << 18 | CHAN_Config->channel_d_increment << 19 | CHAN_Config->channel_endof << 20 | CHAN_Config->channel_mode << 24 | CHAN_Config->channel_pause << 26 | CHAN_Config->channel_enable << 27 | CHAN_Config->channel_reset << 28;
+    CHANx->CHANCSR = CHAN_Config->channel_size
+                     | CHAN_Config->channel_s_increment << 18
+                     | CHAN_Config->channel_d_increment << 19
+                     | CHAN_Config->channel_endof << 20
+                     | CHAN_Config->channel_mode << 24
+                     | CHAN_Config->channel_pause << 26
+                     | CHAN_Config->channel_enable << 27
+                     | CHAN_Config->channel_reset << 28;
 }
 
 /*********************************************************
@@ -99,7 +114,7 @@ void udma_chan_init(UDCHAN_TypeDef *CHANx, DMACHAN_CFG_Type *CHAN_Config)
  * Author           :yjxiong
  * establish time   :2021-04-21
  *********************************************************/
-void udma_chan_set_source_addr(UDCHAN_TypeDef *CHANx, uint32_t s_addr)
+void udma_chan_set_source_addr(UDCHAN_TypeDef* CHANx, uint32_t s_addr)
 {
     CHANx->CHANSAR = s_addr;
 }
@@ -115,7 +130,7 @@ void udma_chan_set_source_addr(UDCHAN_TypeDef *CHANx, uint32_t s_addr)
  * Author           :yjxiong
  * establish time   :2021-04-21
  *********************************************************/
-void udma_chan_set_destina_addr(UDCHAN_TypeDef *CHANx, uint32_t d_addr)
+void udma_chan_set_destina_addr(UDCHAN_TypeDef* CHANx, uint32_t d_addr)
 {
     CHANx->CHANDAR = d_addr;
 }
@@ -131,10 +146,12 @@ void udma_chan_set_destina_addr(UDCHAN_TypeDef *CHANx, uint32_t d_addr)
  * Author           :yjxiong
  * establish time   :2021-04-21
  *********************************************************/
-void udma_chan_set_link_addr(UDCHAN_TypeDef *CHANx, uint32_t l_addr)
+void udma_chan_set_link_addr(UDCHAN_TypeDef* CHANx, uint32_t l_addr)
 {
     CHANx->CHANNLD = (UDCHAN_TypeDef *)l_addr;
 }
+
+
 
 /*********************************************************
  * Function name    :void UDMA_ClearFlag(UDCHAN_TypeDef*CHANx)
@@ -145,8 +162,9 @@ void udma_chan_set_link_addr(UDCHAN_TypeDef *CHANx, uint32_t l_addr)
  * Author           :yjxiong
  * establish time   :2021-04-21
  *********************************************************/
-void UDMA_ClearFlag(UDCHAN_TypeDef *CHANx)
+void UDMA_ClearFlag(UDCHAN_TypeDef* CHANx)
 {
+
 
     /*clear flag of interrupt*/
     CHANx->CHANCSR |= 1 << 12;
@@ -167,32 +185,32 @@ void UDMA_ClearFlag(UDCHAN_TypeDef *CHANx)
 FunctionalState UDMA_GetITState(uDMA_ITCH_Type UdmaChannel)
 {
 
-    FunctionalState state = DISABLE;
+    FunctionalState state   =   DISABLE;
 
-    if (UdmaChannel == UDMA_CHAN0_IT_TC)
+    if (UdmaChannel ==  UDMA_CHAN0_IT_TC)
     {
-        if (UC_DMA->INTSTATE == CHAN0_TCIF)
+        if (UC_DMA->INTSTATE ==  CHAN0_TCIF)
         {
             state = ENABLE;
         }
     }
-    else if (UdmaChannel == UDMA_CHAN1_IT_TC)
+    else if (UdmaChannel ==  UDMA_CHAN1_IT_TC)
     {
-        if (UC_DMA->INTSTATE == CHAN1_TCIF)
+        if (UC_DMA->INTSTATE ==  CHAN1_TCIF)
         {
             state = ENABLE;
         }
     }
-    else if (UdmaChannel == UDMA_CHAN2_IT_TC)
+    else if (UdmaChannel ==  UDMA_CHAN2_IT_TC)
     {
-        if (UC_DMA->INTSTATE == CHAN2_TCIF)
+        if (UC_DMA->INTSTATE ==  CHAN2_TCIF)
         {
             state = ENABLE;
         }
     }
-    else if (UdmaChannel == UDMA_CHAN3_IT_TC)
+    else if (UdmaChannel ==  UDMA_CHAN3_IT_TC)
     {
-        if (UC_DMA->INTSTATE == CHAN3_TCIF)
+        if (UC_DMA->INTSTATE ==  CHAN3_TCIF)
         {
             state = ENABLE;
         }
@@ -200,4 +218,6 @@ FunctionalState UDMA_GetITState(uDMA_ITCH_Type UdmaChannel)
 
     return state;
 }
-#endif
+
+
+

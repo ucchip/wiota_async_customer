@@ -2,21 +2,21 @@
 #include <stdint.h>
 #include <ctype.h>
 
-void *memcpy(void *dest, const void *src, size_t len)
+void* memcpy(void* dest, const void* src, size_t len)
 {
-    const char *s = src;
-    char *d = dest;
-    if ((((uintptr_t)dest | (uintptr_t)src) & (sizeof(uintptr_t) - 1)) == 0)
+    const char* s = src;
+    char* d = dest;
+    if ((((uintptr_t)dest | (uintptr_t)src) & (sizeof(uintptr_t) -1)) == 0)
     {
-        while ((void *)d < (dest + len - (sizeof(uintptr_t) - 1)))
+        while ((void*)d < (dest + len - (sizeof(uintptr_t) -1)))
         {
-            *(uintptr_t *)d = *(const uintptr_t *)s;
+            *(uintptr_t*)d = *(const uintptr_t*)s;
             d += sizeof(uintptr_t);
             s += sizeof(uintptr_t);
         }
     }
 
-    while (d < (char *)(dest + len))
+    while (d < (char*)(dest + len))
     {
         *d = *s;
         d++;
@@ -26,16 +26,17 @@ void *memcpy(void *dest, const void *src, size_t len)
     return dest;
 }
 
-void *memset(void *dest, int byte, size_t len)
+
+void* memset(void* dest, int byte, size_t len)
 {
-    if ((((uintptr_t)dest | len) & (sizeof(uintptr_t) - 1)) == 0)
+    if ((((uintptr_t)dest | len) & (sizeof(uintptr_t) -1)) == 0)
     {
         uintptr_t word = byte & 0xFF;
         word |= word << 8;
         word |= word << 16;
         word |= word << 16 << 16;
-        uintptr_t *d = dest;
-        while (d < (uintptr_t *)(dest + len))
+        uintptr_t* d = dest;
+        while (d < (uintptr_t*)(dest + len))
         {
             *d = word;
             d++;
@@ -43,8 +44,8 @@ void *memset(void *dest, int byte, size_t len)
     }
     else
     {
-        char *d = dest;
-        while (d < (char *)(dest + len))
+        char* d = dest;
+        while (d < (char*)(dest + len))
         {
             *d = byte;
             d++;
@@ -53,9 +54,9 @@ void *memset(void *dest, int byte, size_t len)
     return dest;
 }
 
-size_t strlen(const char *s)
+size_t strlen(const char* s)
 {
-    const char *p = s;
+    const char* p = s;
     while (*p)
     {
         p++;
@@ -63,7 +64,7 @@ size_t strlen(const char *s)
     return p - s;
 }
 
-int strcmp(const char *s1, const char *s2)
+int strcmp(const char* s1, const char* s2)
 {
     uint8_t c1, c2;
 
@@ -78,9 +79,9 @@ int strcmp(const char *s1, const char *s2)
     return c1 - c2;
 }
 
-char *strcpy(char *dest, const char *src)
+char* strcpy(char* dest, const char* src)
 {
-    char *d = dest;
+    char* d = dest;
     while (*src)
     {
         *d = *src;
@@ -91,7 +92,7 @@ char *strcpy(char *dest, const char *src)
     return dest;
 }
 
-long atol(const char *str)
+long atol(const char* str)
 {
     long res = 0;
     int sign = 0;

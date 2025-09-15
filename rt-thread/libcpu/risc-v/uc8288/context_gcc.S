@@ -24,6 +24,14 @@
 ; * 2018-05-29     tanek        add mie register to context
 ; */
 
+#include "rtconfig.h"
+
+#ifdef ARCH_RISCV_FPU_S
+  #define SWITCH_STACK_SIZE ((72)*4)
+#else
+  #define SWITCH_STACK_SIZE ((38)*4)
+#endif
+
 /*
  * rt_base_t rt_hw_interrupt_disable(void);
  */
@@ -54,7 +62,7 @@ rt_hw_context_switch:
      *     mstatus.mie -> sp(2)
      *     x(i)        -> sp(i-4)
      */
-    addi  sp,  sp, -32 * 4
+    addi  sp,  sp, -SWITCH_STACK_SIZE
     sw sp,  (a0)
 
     sw x1,   0 * 4(sp)
@@ -96,12 +104,125 @@ save_mpie:
     sw x30, 30 * 4(sp)
     sw x31, 31 * 4(sp)
 
+    // hwloop
+    csrr t0, 0x7B0
+    csrr t1, 0x7B1
+    csrr t2, 0x7B2
+    sw t0, 32*4(sp)  // lpstart[0]
+    sw t1, 33*4(sp)  // lpend[0]
+    sw t2, 34*4(sp)  // lpcount[0]
+    csrr t0, 0x7B4
+    csrr t1, 0x7B5
+    csrr t2, 0x7B6
+    sw t0, 35*4(sp)  // lpstart[1]
+    sw t1, 36*4(sp)  // lpend[1]
+    sw t2, 37*4(sp)  // lpcount[1]
+
+#ifdef ARCH_RISCV_FPU_S
+  csrr t0, 0x03  // fcsr
+  csrr t1, 0x06  // fprec
+  sw t0, 38*4(sp)  
+  sw t1, 39*4(sp) 
+
+  // fp reg
+  fsw ft0,40*4(sp)  
+  fsw ft1,41*4(sp)  
+  fsw ft2,42*4(sp)  
+  fsw ft3,43*4(sp)  
+  fsw ft4,44*4(sp)  
+  fsw ft5,45*4(sp)  
+  fsw ft6,46*4(sp)  
+  fsw ft7,47*4(sp)  
+  fsw fs0,48*4(sp)  
+  fsw fs1,49*4(sp)  
+  fsw fa0,50*4(sp)  
+  fsw fa1,51*4(sp)  
+  fsw fa2,52*4(sp)  
+  fsw fa3,53*4(sp)  
+  fsw fa4,54*4(sp)  
+  fsw fa5,55*4(sp)  
+  fsw fa6,56*4(sp)  
+  fsw fa7,57*4(sp)  
+  fsw fs2,58*4(sp)  
+  fsw fs3,59*4(sp)  
+  fsw fs4,60*4(sp)  
+  fsw fs5,61*4(sp)  
+  fsw fs6,62*4(sp)  
+  fsw fs7,63*4(sp)  
+  fsw fs8,64*4(sp)  
+  fsw fs9,65*4(sp)  
+  fsw fs10,66*4(sp)  
+  fsw fs11,67*4(sp)  
+  fsw ft8,68*4(sp)  
+  fsw ft9,69*4(sp)  
+  fsw ft10,70*4(sp)  
+  fsw ft11,71*4(sp)   
+
+#endif
+
     /* restore to thread context
      * sp(0) -> epc;
      * sp(1) -> ra;
      * sp(i) -> x(i+2)
      */
     lw sp,  (a1)
+
+    // hwloop
+    lw t0, 32*4(sp)  // lpstart[0]
+    lw t1, 33*4(sp)  // lpend[0]
+    lw t2, 34*4(sp)  // lpcount[0]
+    csrw 0x7B0,t0
+    csrw 0x7B1,t1
+    csrw 0x7B2,t2
+    lw t0, 35*4(sp)  // lpstart[1]
+    lw t1, 36*4(sp)  // lpend[1]
+    lw t2, 37*4(sp)  // lpcount[1]
+    csrw 0x7B4,t0
+    csrw 0x7B5,t1
+    csrw 0x7B6,t2
+
+#ifdef ARCH_RISCV_FPU_S
+
+    // fp reg
+
+    lw t0, 38*4(sp)  // fcsr
+    lw t1, 39*4(sp)  // fprec
+    csrw 0x3,t0      // 
+    csrw 0x6,t1      // 
+
+    flw ft0,40*4(sp)  
+    flw ft1,41*4(sp)  
+    flw ft2,42*4(sp)  
+    flw ft3,43*4(sp)  
+    flw ft4,44*4(sp)  
+    flw ft5,45*4(sp)  
+    flw ft6,46*4(sp)  
+    flw ft7,47*4(sp)  
+    flw fs0,48*4(sp)  
+    flw fs1,49*4(sp)  
+    flw fa0,50*4(sp)  
+    flw fa1,51*4(sp)  
+    flw fa2,52*4(sp)  
+    flw fa3,53*4(sp)  
+    flw fa4,54*4(sp)  
+    flw fa5,55*4(sp)  
+    flw fa6,56*4(sp)  
+    flw fa7,57*4(sp)  
+    flw fs2,58*4(sp)  
+    flw fs3,59*4(sp)  
+    flw fs4,60*4(sp)  
+    flw fs5,61*4(sp)  
+    flw fs6,62*4(sp)  
+    flw fs7,63*4(sp)  
+    flw fs8,64*4(sp)  
+    flw fs9,65*4(sp)  
+    flw fs10,66*4(sp)  
+    flw fs11,67*4(sp)  
+    flw ft8,68*4(sp)  
+    flw ft9,69*4(sp)  
+    flw ft10,70*4(sp)  
+    flw ft11,71*4(sp) 
+#endif
 
     /* resw ra to mepc */
     lw a1,   0 * 4(sp)
@@ -143,7 +264,7 @@ save_mpie:
     lw x30, 30 * 4(sp)
     lw x31, 31 * 4(sp)
 
-    addi sp,  sp, 32 * 4
+    addi sp,  sp, SWITCH_STACK_SIZE
     mret
 
 /*
@@ -153,6 +274,20 @@ save_mpie:
     .globl rt_hw_context_switch_to
 rt_hw_context_switch_to:
     lw sp, (a0)
+
+    // hwloop
+    lw t0, 32*4(sp)  // lpstart[0]
+    lw t1, 33*4(sp)  // lpend[0]
+    lw t2, 34*4(sp)  // lpcount[0]
+    csrw 0x7B0,t0
+    csrw 0x7B1,t1
+    csrw 0x7B2,t2
+    lw t0, 35*4(sp)  // lpstart[1]
+    lw t1, 36*4(sp)  // lpend[1]
+    lw t2, 37*4(sp)  // lpcount[1]
+    csrw 0x7B4,t0
+    csrw 0x7B5,t1
+    csrw 0x7B6,t2
 
     /* load epc from stack */
     lw a0,   0 * 4(sp)
@@ -190,7 +325,50 @@ rt_hw_context_switch_to:
     lw x30, 30 * 4(sp)
     lw x31, 31 * 4(sp)
 
-    addi sp,  sp, 32 * 4
+#ifdef ARCH_RISCV_FPU_S
+
+    // fp reg
+
+    lw t0, 38*4(sp)  // fcsr
+    lw t1, 39*4(sp)  // fprec
+    csrw 0x3,t0      
+    csrw 0x6,t1      
+
+    flw ft0,40*4(sp)  
+    flw ft1,41*4(sp)  
+    flw ft2,42*4(sp)  
+    flw ft3,43*4(sp)  
+    flw ft4,44*4(sp)  
+    flw ft5,45*4(sp)  
+    flw ft6,46*4(sp)  
+    flw ft7,47*4(sp)  
+    flw fs0,48*4(sp)  
+    flw fs1,49*4(sp)  
+    flw fa0,50*4(sp)  
+    flw fa1,51*4(sp)  
+    flw fa2,52*4(sp)  
+    flw fa3,53*4(sp)  
+    flw fa4,54*4(sp)  
+    flw fa5,55*4(sp)  
+    flw fa6,56*4(sp)  
+    flw fa7,57*4(sp)  
+    flw fs2,58*4(sp)  
+    flw fs3,59*4(sp)  
+    flw fs4,60*4(sp)  
+    flw fs5,61*4(sp)  
+    flw fs6,62*4(sp)  
+    flw fs7,63*4(sp)  
+    flw fs8,64*4(sp)  
+    flw fs9,65*4(sp)  
+    flw fs10,66*4(sp)  
+    flw fs11,67*4(sp)  
+    flw ft8,68*4(sp)  
+    flw ft9,69*4(sp)  
+    flw ft10,70*4(sp)  
+    flw ft11,71*4(sp) 
+#endif
+
+    addi sp,  sp, SWITCH_STACK_SIZE
     mret
 
 /*

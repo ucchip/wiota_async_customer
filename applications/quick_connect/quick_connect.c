@@ -1,15 +1,14 @@
 #include <rtthread.h>
 #ifdef _QUICK_CONNECT_
+#ifdef RT_USING_AT
 
 #include <rtdevice.h>
 #include <board.h>
 #include <string.h>
 #include "uc_wiota_api.h"
 #include "uc_wiota_static.h"
-#ifdef RT_USING_AT
 #include <at.h>
 #include "ati_prs.h"
-#endif
 #include "uc_string_lib.h"
 #include "uc_adda.h"
 #include "uc_uart.h"
@@ -18,6 +17,32 @@
 
 static rt_mutex_t p_mutex_qc_state = NULL;
 static rt_mutex_t p_mutex_qc_run = NULL;
+
+static unsigned int str_to_16(char *hexstring)
+{
+    unsigned int hexnumber = 0;
+
+    for (int i = 0; hexstring[i] != '\0'; i++)
+    {
+        int value = 0;
+        if (hexstring[i] >= '0' && hexstring[i] <= '9')
+        {
+            value = hexstring[i] - '0';
+        }
+        else if (hexstring[i] >= 'a' && hexstring[i] <= 'f')
+        {
+            value = hexstring[i] - 'a' + 10;
+        }
+        else if (hexstring[i] >= 'A' && hexstring[i] <= 'F')
+        {
+            value = hexstring[i] - 'A' + 10;
+        }
+
+        hexnumber = hexnumber * 16 + value;
+    }
+
+    return hexnumber;
+}
 
 void quick_connect_init(void)
 {
@@ -79,8 +104,8 @@ unsigned char get_qc_auto_run(void)
 //symbol_length：帧配置，取值0,1,2,3代表128,256,512,1024
 /*band：带宽，
         1: 200K // 默认带宽
-        2: 100K 
-        3: 50K 
+        2: 100K
+        3: 50K
         4: 25K
 */
 //subnum，设置每帧的子帧数
@@ -97,17 +122,19 @@ static s_qc_cfg qc_cfg[QC_MODE_MAX] =
 };
 
 static e_qc_mode cur_mode = QC_MODE_MID_DIS_THROUGH;
+static unsigned short cur_freq = 100;
 
 int wiota_quick_connect_start(unsigned short freq, e_qc_mode mode)
 {
     int ret = -1;
-    sub_system_config_t config;
+    // sub_system_config_t config;
 
     if (mode >= QC_MODE_MAX)
     {
         return AT_RESULT_REPETITIVE_FAILE;
     }
 
+    cur_freq = freq;
     cur_mode = mode;
 
     clr_qc_auto_run();
@@ -115,44 +142,13 @@ int wiota_quick_connect_start(unsigned short freq, e_qc_mode mode)
     if (get_qc_wiota_state() != QC_EXIT)
     {
         uc_wiota_exit();
-#ifdef RT_USING_AT
+
         at_wiota_set_state(AT_WIOTA_EXIT);
-#endif
 
         set_qc_wiota_state(QC_EXIT);
 
         rt_thread_mdelay(100);
     }
-
-    //save parameter
-    uc_wiota_get_system_config(&config);
-
-    config.freq_idx = freq;
-
-    config.symbol_length = qc_cfg[mode].symbol_len;
-
-    config.bandwidth = qc_cfg[mode].band;
-
-    uc_wiota_set_system_config(&config);
-
-    uc_wiota_save_static_info();
-
-    //use this api check freq range,when in api mode,
-    //when set bandwidth,then check freq,freq is limited in range 200 when bandwith is 200k,in range 1600 when bandwidth is 25k
-    if (uc_wiota_set_freq_info(freq) == FALSE)
-    {
-        return AT_RESULT_REPETITIVE_FAILE;
-    }
-
-    rt_kprintf("\r\nqs f=%d,m=%d,sl=%d,bw=%d,sn=%d,msc=%d,p=%d\r\n",
-               freq, mode, config.symbol_length, config.bandwidth, qc_cfg[mode].subnum, qc_cfg[mode].mcs, qc_cfg[mode].up_pow-20);
-
-#ifdef RT_USING_AT
-    at_server_printfln("+QCSTART:%d,%d,%d,%d,%d,%d",
-                       freq, config.symbol_length, config.bandwidth, qc_cfg[mode].subnum, qc_cfg[mode].mcs, qc_cfg[mode].up_pow-20);
-#endif
-
-    rt_thread_mdelay(50);
 
     set_qc_auto_run();
 
@@ -168,9 +164,8 @@ int wiota_quick_connect_stop(void)
     if (get_qc_wiota_state() != QC_EXIT)
     {
         uc_wiota_exit();
-#ifdef RT_USING_AT
+
         at_wiota_set_state(AT_WIOTA_EXIT);
-#endif
 
         set_qc_wiota_state(QC_EXIT);
 
@@ -183,13 +178,15 @@ int wiota_quick_connect_stop(void)
 static int quick_open_wiota(void)
 {
     sub_system_config_t config;
+    unsigned char module_id[19] = {0};
+    unsigned int userid[2] = {0};
+    unsigned char userid_len = 0;
 
     if (get_qc_wiota_state() != QC_EXIT)
     {
         uc_wiota_exit();
-#ifdef RT_USING_AT
+
         at_wiota_set_state(AT_WIOTA_EXIT);
-#endif
 
         set_qc_wiota_state(QC_EXIT);
     }
@@ -200,20 +197,48 @@ static int quick_open_wiota(void)
 
     set_qc_wiota_state(QC_INIT);
 
+    //save parameter
     uc_wiota_get_system_config(&config);
 
-    uc_wiota_set_freq_info(config.freq_idx);
+    config.freq_idx = cur_freq;
 
-#ifdef RT_USING_AT
-    at_server_printfln("+QCCONN:%d", config.freq_idx);
-#endif
+    config.symbol_length = qc_cfg[cur_mode].symbol_len;
+
+    config.bandwidth = qc_cfg[cur_mode].band;
+
+    uc_wiota_set_system_config(&config);
+
+    uc_wiota_save_static_info();
+
+    rt_kprintf("\r\nqs f=%d,m=%d,sl=%d,bw=%d,sn=%d,msc=%d,p=%d\r\n",
+               cur_freq, cur_mode, config.symbol_length, config.bandwidth, qc_cfg[cur_mode].subnum, qc_cfg[cur_mode].mcs, qc_cfg[cur_mode].up_pow - 20);
+
+    at_server_printfln("+QCSTART:%d,%d,%d,%d,%d,%d",
+                       cur_freq, config.symbol_length, config.bandwidth, qc_cfg[cur_mode].subnum, qc_cfg[cur_mode].mcs, qc_cfg[cur_mode].up_pow - 20);
+
+    rt_thread_mdelay(50);
+
+    //use this api check freq range,when in api mode,
+    //when set bandwidth,then check freq,freq is limited in range 200 when bandwith is 200k,in range 1600 when bandwidth is 25k
+    if (uc_wiota_set_freq_info(config.freq_idx) == FALSE)
+    {
+        return AT_RESULT_REPETITIVE_FAILE;
+    }
+
+    uc_wiota_get_module_id(module_id);
+
+    userid[0] = str_to_16((char *)module_id);
+
+    uc_wiota_set_userid(&userid[0], 4);
+
+    uc_wiota_get_userid(userid, &userid_len);
+
+    at_server_printfln("+QCCONN:0x%02x,%d", userid[0], config.freq_idx);
 
     uc_wiota_run();
 
-#ifdef RT_USING_AT
     uc_wiota_register_recv_data_callback(wiota_recv_callback, UC_CALLBACK_NORAMAL_MSG);
     at_wiota_set_state(AT_WIOTA_RUN);
-#endif
 
     uc_wiota_set_cur_power(qc_cfg[cur_mode].up_pow - 20);
 
@@ -271,4 +296,5 @@ int quick_connect_task_init(void)
     return 0;
 }
 
+#endif
 #endif

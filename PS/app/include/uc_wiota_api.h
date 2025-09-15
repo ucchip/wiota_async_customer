@@ -52,6 +52,7 @@ typedef enum
     UC_RECV_ACC_DATA,         // UC_CALLBACK_NORAMAL_MSG, acc voice data, need _VOICE_ACC_, not support now
     UC_RECV_SAVE_STATIC_DONE, // UC_CALLBACK_STATE_INFO, save static done when run
     UC_RECV_PG_TX_DONE,       // UC_CALLBACK_STATE_INFO, when pg tx end, tell app
+    UC_RECV_SUBF_DATA,        // UC_CALLBACK_NORAMAL_MSG, subframe data report, need open report
     UC_RECV_MAX_TYPE,
 } uc_recv_data_type_e;
 
@@ -355,14 +356,6 @@ typedef struct
 
 typedef struct
 {
-    unsigned int uni_send_succ_data_len;
-    unsigned int bc_send_succ_data_len;
-    unsigned int uni_recv_succ_data_len;
-    unsigned int bc_recv_succ_data_len;
-} uc_throughput_info_t, *uc_throughput_info_p;
-
-typedef struct
-{
     unsigned char mode; // 0: old id range(narrow), 1: extend id range(wide)
     unsigned char spectrum_idx;
     unsigned char bandwidth;
@@ -395,7 +388,7 @@ typedef struct
 {
     unsigned short data_len;
     unsigned char is_right; // for recv data
-    unsigned char reserved;
+    unsigned char rssi;
     unsigned char *data;
 } uc_subf_data_t, *uc_subf_data_p;
 
@@ -498,10 +491,6 @@ void uc_wiota_set_crc(unsigned short crc_limit);
 
 unsigned short uc_wiota_get_crc(void);
 
-void uc_wiota_reset_throughput(unsigned char type);
-
-void uc_wiota_get_throughput(uc_throughput_info_t *throughput_info);
-
 #ifdef _LIGHT_PILOT_
 void uc_wiota_light_func_enable(unsigned char func_enable);
 #endif
@@ -543,7 +532,9 @@ unsigned char uc_wiota_get_subframe_recv(void);
 void uc_wiota_set_subrecv_fail_limit(unsigned char fail_limit);
 void uc_wiota_set_two_way_mode(unsigned char mode, unsigned char is_open);
 void uc_wiota_get_two_way_mode(unsigned char *is_send, unsigned char *is_recv);
-void uc_wiota_set_subframe_head(unsigned char head_data);
+// void uc_wiota_set_subframe_head(unsigned char head_data);
+void uc_wiota_set_two_mode_recv(unsigned char tm_recv_flag);
+unsigned char uc_wiota_get_two_mode_recv(void);
 #endif // _SUBFRAME_MODE_
 
 void uc_wiota_set_lna_pa_gpio(unsigned char lna_gpio, unsigned char pa_gpio,
@@ -592,6 +583,7 @@ unsigned char uc_wiota_add_subframe_data(uc_subf_data_p subf_data);
 void uc_wiota_get_subframe_data(uc_subf_data_p subf_data);
 unsigned int uc_wiota_get_subframe_data_num(unsigned char is_recv);
 void uc_wiota_set_subframe_data_limit(unsigned int num_limit);
+unsigned char uc_wiota_set_is_report_subf_data(unsigned char mode);
 #endif
 
 unsigned char uc_wiota_get_physical_status(void); // uc_rf_status_e
@@ -664,6 +656,17 @@ void uc_wiota_set_scan_sorted(unsigned char is_sort);
 void uc_wiota_set_scan_max(unsigned char is_max);
 
 unsigned char uc_wiota_flash_id_is_puya(void);
+
+void uc_wiota_set_new_ldo(unsigned char new_ldo);
+
+void uc_wiota_set_gating_print(unsigned char is_open);
+
+void uc_wiota_set_en_aagc_ajust(unsigned char en_aagc_ajust);
+
+void uc_wiota_set_init_agc(unsigned char agc_idx);
+
+unsigned char uc_wiota_mem_addr_value(unsigned int mem_addr, unsigned int value);
+
 
 // below is about uboot
 void get_uboot_version(unsigned char *version);

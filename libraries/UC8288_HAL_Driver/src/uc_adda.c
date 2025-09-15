@@ -27,8 +27,6 @@
  *  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <rtthread.h>
-#if defined(RT_USING_ADC) && defined(RT_USING_DAC)
 #include "uc_adda.h"
 #include "uc_pulpino.h"
 #include "uc_event.h"
@@ -41,8 +39,6 @@
 #define ADC_VOLTAGE_TRIM 12
 
 #define BIT(x) (1 << (x))
-
-#ifdef RT_USING_ADC
 
 uint32_t adc_get_adj_result(uint32_t adc_ori)
 {
@@ -340,9 +336,7 @@ void adc_temp_sensor_enable(ADDA_TypeDef *ADDA, unsigned char enable)
     //ADDA->ADC_CTRL1 =  (ADDA->ADC_CTRL1 & (~(0x07<<18))) | (0x05 << 18);//set vcm trim
     //REG(0x1A104230) = (REG(0x1A104230) & (~(0x0f<<20))) | (12<<20);//calibrate voltage
 }
-#endif
 
-#ifdef RT_USING_DAC
 void dac_power_set(ADDA_TypeDef *ADDA)
 {
     CHECK_PARAM(PARAM_ADDC(ADDA));
@@ -454,5 +448,3 @@ void auxdac_level_set(ADDA_TypeDef *ADDA, uint16_t ele_level)
 
     ADDA->AUX_DAC_LV = ele_level;
 }
-#endif
-#endif
