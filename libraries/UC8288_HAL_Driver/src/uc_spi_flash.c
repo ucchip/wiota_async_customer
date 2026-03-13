@@ -11,7 +11,7 @@
 #define __critical_512 __attribute__((section(".crt0"), aligned(512), noinline))
 
 #define WAIT_XIP_FREE while (REG_XIP_CTRL & 0x1)
-#define WAIT_FOR_WR_DONE while (Flash_Read_SR() & 0x01)
+#define WAIT_FOR_WR_DONE while (Flash_Read_SR(0) & 0x01)
 #define WAIT_SPI_IDLE while (REG_SPI_STATUS != 1)
 
 #define SPI_START(cmd) (REG_SPI_STATUS = (1 << (SPI_CSN0 + 8)) | (1 << (cmd))); //start
@@ -25,10 +25,14 @@
 extern uint16_t auto_dummy;
 //static uint16_t auto_dummy = 6;
 
-__critical_128 uint32_t Flash_Read_SR()
+__critical_128 uint32_t Flash_Read_SR(uint8_t is_high)
 {
+    if (is_high > 1)
+    {
+        return 0;
+    }
     uint32_t data;
-    REG_SPI_CMD = FLASH_CMD_STATUS << 24; //read sr
+    REG_SPI_CMD = (FLASH_CMD_STATUS | 0x30 * is_high) << 24; //read sr
     REG_SPI_LEN = 0x200008;
     REG_SPI_DUMMY = SPI_DEFAULT_DUMMY;
     WAIT_XIP_FREE;
@@ -201,29 +205,35 @@ __critical_128 void FlashDisableWr(void)
         ;
 }
 
-__critical_128 void flash_delay(uint32_t delay_time)
+// __critical_128 void flash_delay(uint32_t delay_time)
+// {
+//     int i, j;
+//     for (i = 0; i < delay_time; i++)
+//     {
+//         for (j = 0; j < 40; j++)
+//         {
+//             asm("nop");
+//         }
+//     }
+// }
+
+
+__critical_128 void Flash_Write_SR(uint8_t status, uint8_t is_high)
 {
-    int i, j;
-    for (i = 0; i < delay_time; i++)
+    if (is_high > 1)
     {
-        for (j = 0; j < 40; j++)
-        {
-            asm("nop");
-        }
+        return;
     }
-}
-__critical_128 void Flash_Write_SR(uint8_t status)
-{
     WAIT_FOR_WR_DONE;
     WAIT_XIP_FREE;
     FlashEnableWr();
-    flash_delay(0);
-    REG_SPI_CMD = FLASH_CMD_WRITE_STATUS << 24 | status << 16; // set cmd
+    // flash_delay(0);
+    REG_SPI_CMD = (is_high ? FLASH_CMD_WRITE_STATUS_HIGH : FLASH_CMD_WRITE_STATUS) | status << 16; // set cmd
     REG_SPI_LEN = 0x0010;                                      // set cmd and data len
     WAIT_XIP_FREE;
     SPI_START(SPI_CMD_WR);
     WAIT_SPI_IDLE;
-    flash_delay(100);
+    // flash_delay(1000);
     WAIT_FOR_WR_DONE;
     FlashDisableWr();
 }

@@ -3,7 +3,9 @@
 #include "wiota_app.h"
 #include "uc_example_app.h"
 #include "uc_wiota_static.h"
-
+#ifdef _SIMPLIFIED_AT_
+#include "at_simplified.h"
+#endif
 #ifdef RT_TASK_RESOURCE_TOOL
 #include "resource_manager.h"
 #endif
@@ -32,13 +34,21 @@ int main(void)
     resource_manager_init();
 #endif
 
+    unsigned int count = 0;
     while (1)
     {
-        rt_thread_mdelay(7000);
-        memory_show();
-#ifdef RT_TASK_RESOURCE_TOOL
-        // resource_manager(RESOURCE_SIMPLE_MODE);
+#ifdef _SIMPLIFIED_AT_
+        at_simplified_running();
+#else
+        rt_thread_mdelay(2000);
 #endif
+        if (count++ % 4 == 0)
+        {
+            memory_show();
+#ifdef RT_TASK_RESOURCE_TOOL
+            // resource_manager(RESOURCE_SIMPLE_MODE);
+#endif
+        }
     }
 
     return 0;

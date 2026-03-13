@@ -11,7 +11,6 @@
 #define LOG_TAG "drv.adc"
 #include <drv_log.h>
 
-extern uint32_t adc_get_adj_result(uint32_t adc_ori);
 static struct rt_adc_device uc8x88_adc_device;
 
 static rt_err_t uc8x88_adc_enabled(struct rt_adc_device *device, rt_uint32_t channel, rt_bool_t enabled)
@@ -31,6 +30,7 @@ static rt_err_t uc8x88_adc_enabled(struct rt_adc_device *device, rt_uint32_t cha
         {
             ADC_CHANNEL channel_val = ADC_CHANNEL_A;
             adc_power_set(UC_ADDA);
+            // adc_avg_set(UC_ADDA, 1);
             adc_channel_select(UC_ADDA, channel_val);
             adc_set_sample_rate(UC_ADDA, ADC_SR_360KSPS);
             adc_fifo_clear(UC_ADDA);
@@ -165,6 +165,7 @@ static rt_err_t get_adc_value(struct rt_adc_device *device, rt_uint32_t channel,
     RT_ASSERT(device != RT_NULL);
     RT_ASSERT(value != RT_NULL);
 
+#if 1
     /* get ADC value */
     for (uint8_t index = 0; index < WATERMARK_FIFO_SIZE; index++)
     {
@@ -198,6 +199,19 @@ static rt_err_t get_adc_value(struct rt_adc_device *device, rt_uint32_t channel,
         *value = 0;
         ret_val = RT_ERROR;
     }
+#else
+
+    for (int j = 0; j < 200; j++)
+    {
+        asm volatile("nop");
+    }
+
+    adc_fifo_clear(UC_ADDA);
+    adc_wait_data_ready(UC_ADDA);
+    *value = adc_get_adj_result(adc_read(UC_ADDA));
+
+    // rt_kprintf("adc %d %d", adc_list[0], adc_list[1]);
+#endif
 
     return ret_val;
 }

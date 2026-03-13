@@ -62,4 +62,8 @@ config _NARROW_BAND_FUNC_
     bool "super narrow mode, default open(_NARROW_BAND_FUNC_)"
     default y
 
+config _SIMPLIFIED_AT_
+    bool "simplified at cmd, default close(_SIMPLIFIED_AT_)"
+    default n
+
 endmenu

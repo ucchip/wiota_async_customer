@@ -78,6 +78,8 @@ typedef enum
     ADC_TEMP_C = 1 << 23, /* in-chip temperature */
 } ADC_TEMP_SRC;
 extern void temp_in_b_config(ADDA_TypeDef* ADDA);
+extern void adc_avg_set(ADDA_TypeDef *ADDA, unsigned char avg);
+extern uint32_t adc_get_adj_result(uint32_t adc_ori);
 extern void adc_power_set(ADDA_TypeDef* ADDA);
 //extern void temperature_set(ADDA_TypeDef *ADDA);
 extern void adc_set_sample_rate(ADDA_TypeDef* ADDA, ADC_SAMPLE_RATE sample_rate);

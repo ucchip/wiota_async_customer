@@ -124,6 +124,17 @@ __critical_128 void xip_dummy_detect()
 //  return data;
 //}
 
+__critical_128 void flash_write_disable_boot()
+{
+    WAIT_XIP_FREE;
+    *reg_spi_cmd = FLASH_WD;  //set cmd
+    *reg_spi_len = 0x0008;      //set cmd and data len
+    WAIT_XIP_FREE;
+    SPI_START(SPI_CMD_WR);
+    while (*reg_spi_status != 1);
+}
+
+/*
 __critical_128 void flash_qspi_en()
 {
     //uint32_t data;
@@ -151,7 +162,7 @@ __critical_128 void flash_qspi_en()
     //poll write in progress
     // while (flash_read_sr() & 0x03);
 }
-
+*/
 
 /* this is done in SPI mode for safety */
 __critical_128 void fill_mtr()
@@ -347,6 +358,7 @@ __critical_128 void boot_strap()
     //flash_read_id();
     fill_mtr();
     // flash_qspi_en();
+    flash_write_disable_boot();
     WAIT_XIP_FREE;
     //8288 dcxo doubler enable; set 96M
     *(reg_dcxo_ctrl2) |= (1 << 16);  // 0x1a10a01c
@@ -393,7 +405,7 @@ __critical_128 void boot_strap()
         //    flash_read_id();
         fill_mtr();
         /* critical function, enable flash QSPI Mode */
-        flash_qspi_en();
+        // flash_qspi_en();
 
         //-----------------------------------------------------------------------------
         /*************************

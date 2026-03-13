@@ -9,18 +9,19 @@
 #ifdef UC8288_MODULE
 #include "uc_wiota_static.h"
 #include "uc_wiota_api.h"
-
 #ifdef RT_USING_AT
 #include "at.h"
+#ifdef _SIMPLIFIED_AT_
+#include "at_simplified.h"
+#else
 #include "at_wiota.h"
 #include "at_wiota_gpio_report.h"
-#endif
-
-#endif
-
 #ifdef _QUICK_CONNECT_
 #include "quick_connect.h"
-#endif
+#endif //_QUICK_CONNECT_
+#endif //_SIMPLIFIED_AT_
+#endif // RT_USING_AT
+#endif // UC8288_MODULE
 
 #if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
 extern void at_handle_log_uart(int uart_number);
@@ -93,8 +94,17 @@ int wiota_app_init(void)
     {
 #ifdef RT_USING_AT
         at_server_init();
-        // at_wiota_manager();
-#endif
+#ifdef _SIMPLIFIED_AT_
+        at_simplified_init();
+#else
+        at_wiota_gpio_report_init();
+        wake_out_pulse_init();
+#ifdef _QUICK_CONNECT_
+        quick_connect_task_init();
+#endif //_QUICK_CONNECT_
+#endif //_SIMPLIFIED_AT_
+#endif // RT_USING_AT
+    // at_wiota_manager();
     }
     else
     {
@@ -102,12 +112,7 @@ int wiota_app_init(void)
         uc_wiota_factory_task_init();
 #endif
     }
-
-#ifdef RT_USING_AT
-    at_wiota_gpio_report_init();
-    wake_out_pulse_init();
-#endif
-#endif
+#endif // UC8288_MODULE
 
 #ifdef WIOTA_RELAY_APP
     extern int uc_wiota_relay_app_init(void);
@@ -119,12 +124,6 @@ int wiota_app_init(void)
 
 #if defined(RT_USING_CONSOLE) && defined(RT_USING_DEVICE)
     // at_handle_log_uart(0);
-#endif
-
-#ifdef _QUICK_CONNECT_
-#ifdef RT_USING_AT
-    quick_connect_task_init();
-#endif
 #endif
 
     return 0;

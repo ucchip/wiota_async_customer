@@ -38,21 +38,29 @@
 
 typedef enum
 {
+    UC_RFC_PA_LNA_CLOSE = 0,      // all close
+    UC_RFC_PA_CLOSE_LNA_OPEN = 1, // pa and tx_en close, lna open
+    UC_RFC_PA_OPEN_LNA_CLOSE = 2, // pa and tx_en open, lna close
+} uc_callback_rf_ctrl_type_e;
+
+typedef enum
+{
     UC_CALLBACK_NORAMAL_MSG = 0, // normal msg from ap
     UC_CALLBACK_STATE_INFO,      // state info
+    UC_CALLBACK_RF_CONTROL,      // rf control, return uc_recv_back_p, result: uc_callback_rf_ctrl_type_e
 } uc_callback_data_type_e;
 
 typedef enum
 {
-    UC_RECV_MSG = 0,          // UC_CALLBACK_NORAMAL_MSG, normal msg
-    UC_RECV_BC,               // UC_CALLBACK_NORAMAL_MSG, broadcast msg
-    UC_RECV_SCAN_FREQ,        // UC_CALLBACK_NORAMAL_MSG, result of freq scan by riscv
-    UC_RECV_PHY_RESET,        // UC_CALLBACK_STATE_INFO, if phy reseted once, tell app
-    UC_RECV_SYNC_STATE,       // UC_CALLBACK_STATE_INFO, when subf recv mode, if sync succ, report UC_OP_SUCC, if track fail, report UC_OP_FAIL
-    UC_RECV_ACC_DATA,         // UC_CALLBACK_NORAMAL_MSG, acc voice data, need _VOICE_ACC_, not support now
-    UC_RECV_SAVE_STATIC_DONE, // UC_CALLBACK_STATE_INFO, save static done when run
-    UC_RECV_PG_TX_DONE,       // UC_CALLBACK_STATE_INFO, when pg tx end, tell app
-    UC_RECV_SUBF_DATA,        // UC_CALLBACK_NORAMAL_MSG, subframe data report, need open report
+    UC_RECV_MSG = 0,              // UC_CALLBACK_NORAMAL_MSG, normal msg
+    UC_RECV_BC = 1,               // UC_CALLBACK_NORAMAL_MSG, broadcast msg
+    UC_RECV_SCAN_FREQ = 2,        // UC_CALLBACK_NORAMAL_MSG, result of freq scan by riscv
+    UC_RECV_PHY_RESET = 3,        // UC_CALLBACK_STATE_INFO, if phy reseted once, tell app
+    UC_RECV_SYNC_STATE = 4,       // UC_CALLBACK_STATE_INFO, when subf recv mode, if sync succ, report UC_OP_SUCC, if track fail, report UC_OP_FAIL
+    UC_RECV_ACC_DATA = 5,         // UC_CALLBACK_NORAMAL_MSG, acc voice data, need _VOICE_ACC_, not support now
+    UC_RECV_SAVE_STATIC_DONE = 6, // UC_CALLBACK_STATE_INFO, save static done when run
+    UC_RECV_PG_TX_DONE = 7,       // UC_CALLBACK_STATE_INFO, when pg tx end, tell app
+    UC_RECV_SUBF_DATA = 8,        // UC_CALLBACK_NORAMAL_MSG, subframe data report, need open report
     UC_RECV_MAX_TYPE,
 } uc_recv_data_type_e;
 
@@ -97,7 +105,8 @@ typedef enum
     UC_RATE_UNI_ACK_MODE = 2,   // uc_uni_ack_mode_e
     UC_RATE_FIRST_MCS_MODE = 3, // default 0, first bc mcs is 0, 1: calc access mcs
     UC_RATE_PRM_GAP_MODE = 4,   // uc_prm_gap_mode_e
-    UC_RATE_OLD_UNI_MODE = 5,   // 1: old mode, default 0: new mode
+    UC_RATE_OLD_UNI_MODE = 5,   // 1: old mode, default, 0: new mode
+    UC_RATE_BIT_TRANS_MODE = 6, // cc bit trans mode, 0, close, 1~16, rate mcs
     UC_RATE_OTHER,
 } uc_data_rate_mode_e;
 
@@ -253,7 +262,7 @@ typedef enum
     FREQ_SPACING_6P25KHZ,    // 6
     FREQ_SPACING_5KHZ,       // 7
     FREQ_SPACING_500HZ,      // 8
-    FREQ_SPACING_2P5HZ,      // 9
+    FREQ_SPACING_2P5KHZ,     // 9
     FREQ_SPACING_100HZ,      // 10
     FREQ_SPACING_MAX,        // 11
 } uc_freq_spacing_e;
@@ -386,10 +395,11 @@ typedef struct
 
 typedef struct
 {
-    unsigned short data_len;
-    unsigned char is_right; // for recv data
-    unsigned char rssi;
-    unsigned char *data;
+    unsigned short data_len;    // by byte
+    unsigned char is_right : 4; // for recv data, means data right; for send data, set 1 means last app data, send and stop
+    unsigned char fn_idx : 4;   // for recv data of muti way mode, indicate which sender
+    unsigned char rssi;         // for recv data, subframe rssi
+    unsigned char *data;        // by byte, if bit trans mode, may not fill full space at last byte
 } uc_subf_data_t, *uc_subf_data_p;
 
 typedef struct
@@ -407,14 +417,16 @@ typedef struct
 
 typedef struct
 {
-    unsigned char is_close; // default 0, can set 1, then not use adj
-    unsigned char is_valid; // if got valid data from factory test
-    unsigned char adc_trm;  // adc config
-    unsigned char reserved; // re
-    unsigned short adc_ka;  // adc calc
-    short adc_mida;         // adc calc
-    unsigned short adc_kb;  // adc calc
-    short adc_midb;         // adc calc
+    unsigned char is_close;  // default 0, can set 1, then not use adj
+    unsigned char is_valid;  // if got valid data from factory test
+    unsigned char adc_trm;   // adc config
+    unsigned char reserved;  // re
+    unsigned short adc_ka;   // adc calc
+    short adc_mida;          // adc calc
+    unsigned short adc_kb;   // adc calc
+    short adc_midb;          // adc calc
+    unsigned short a3;       // a3
+    unsigned short avdd_cap; // avdd_cap
 } uc_adc_adj_t, *uc_adc_adj_p;
 
 typedef void (*uc_recv)(uc_recv_back_p recv_data);
@@ -472,6 +484,8 @@ void uc_wiota_set_extra_rf_before_send(unsigned int duration);              // m
 unsigned char uc_wiota_get_is_gating(void);
 void uc_wiota_set_gating_event(unsigned char action, unsigned char event_id);
 #endif // _CLK_GATING_
+
+void uc_wiota_get_bit_trans_len(unsigned short *bit_len, unsigned short *byte_len);
 
 unsigned char uc_wiota_set_data_rate(unsigned char rate_mode, unsigned short rate_value);
 
@@ -535,7 +549,10 @@ void uc_wiota_get_two_way_mode(unsigned char *is_send, unsigned char *is_recv);
 // void uc_wiota_set_subframe_head(unsigned char head_data);
 void uc_wiota_set_two_mode_recv(unsigned char tm_recv_flag);
 unsigned char uc_wiota_get_two_mode_recv(void);
+unsigned char uc_wiota_set_subframe_idle_num(unsigned char idle_num);
 #endif // _SUBFRAME_MODE_
+
+void uc_wiota_set_txen_gpio(unsigned char is_open, unsigned char gpio, unsigned char trigger);
 
 void uc_wiota_set_lna_pa_gpio(unsigned char lna_gpio, unsigned char pa_gpio,
                               unsigned char lna_trigger, unsigned char pa_trigger);
@@ -635,6 +652,8 @@ void uc_wiota_set_uni_ack_info(uc_uni_ack_info_p uni_ack_info_ptr);
 
 unsigned char uc_wiota_get_module_id(unsigned char *module_id);
 
+unsigned char uc_wiota_get_is_version_e(void);
+
 unsigned char uc_wiota_set_data_limit(unsigned char mode, unsigned short limit);
 
 unsigned short uc_wiota_get_data_limit(unsigned char mode);
@@ -657,6 +676,8 @@ void uc_wiota_set_scan_max(unsigned char is_max);
 
 unsigned char uc_wiota_flash_id_is_puya(void);
 
+unsigned int uc_wiota_get_open_flash_end_addr(void);
+
 void uc_wiota_set_new_ldo(unsigned char new_ldo);
 
 void uc_wiota_set_gating_print(unsigned char is_open);
@@ -666,6 +687,20 @@ void uc_wiota_set_en_aagc_ajust(unsigned char en_aagc_ajust);
 void uc_wiota_set_init_agc(unsigned char agc_idx);
 
 unsigned char uc_wiota_mem_addr_value(unsigned int mem_addr, unsigned int value);
+
+unsigned short uc_wiota_read_flash_sr(void);
+void uc_wiota_lock_flash_all(void);
+void uc_wiota_unlock_flash_all(void);
+
+void uc_wiota_set_is_exit_static(unsigned char is_save);
+
+#ifdef _SUBFRAME_MODE_
+unsigned char uc_wiota_set_muti_way_mode(unsigned char mode, unsigned char is_open,
+                                         unsigned char fn_idx, unsigned char fn_num);
+#endif
+
+unsigned char uc_wiota_set_data_compress_for_send(unsigned char compress_flag);
+unsigned char uc_wiota_get_data_compress_of_recv(void);
 
 
 // below is about uboot
