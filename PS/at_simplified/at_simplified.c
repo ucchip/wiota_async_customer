@@ -113,7 +113,7 @@ typedef struct
 const unsigned int FREQ_RANGES[8][2] = {
     {BASE_FREQ, 235000000}, // 223MHz~235MHz，sepctrum_idx 0
     {400000000, 480000000}, // 400MHz~480MHz，sepctrum_idx 1
-    {443050000, 434790000}, // 433.05MHz~434.79MHz，sepctrum_idx 2
+    {433050000, 434790000}, // 433.05MHz~434.79MHz，sepctrum_idx 2
     {470000000, 510000000}, // 470MHz~510MHz，sepctrum_idx 3
     {779000000, 787000000}, // 779MHz~787MHz，sepctrum_idx 4
     {840000000, 845000000}, // 840MHz~845MHz，sepctrum_idx 5
